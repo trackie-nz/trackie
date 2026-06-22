@@ -80,6 +80,7 @@ jobs:
           cp ./packages/desktop-client/package.json ./node_modules/@actual-app/web/package.json
           cp -r ./packages/desktop-client/build ./node_modules/@actual-app/web/build
           cp "$GITHUB_WORKSPACE/app/entrypoint.sh" ./entrypoint.sh
+          rm -f ./.dockerignore
 
       - name: Resolve lowercase image name
         id: image
