@@ -4,11 +4,6 @@
 
 No cost, no ads, no data harvesting, New Zealand only.
 
-> **Why this repository exists.** This is the *actual code* that runs trackie.nz,
-> published in the open so anyone can verify exactly what happens to their financial
-> data. No analytics, no tracking, no hidden changes - Trackie is standard Actual
-> Budget plus one small, auditable New Zealand layer to allow multi-user and Akahu sync.
-
 ## About
 
 - **[About this service](docs/about-this-service.md)** - what Trackie is, why it is free, how your data is kept safe.
@@ -26,6 +21,10 @@ No cost, no ads, no data harvesting, New Zealand only.
   so transactions import automatically. Entirely opt-in; Trackie works fully with
   manual import (CSV / OFX / QIF / QFX) and no bank connection at all.
 - **No lock-in** - export your full budget any time and take it anywhere.
+
+## Why this repository exists
+
+This is the *actual code* that runs trackie.nz, published in the open so anyone can verify exactly what happens to their financial data. No analytics, no tracking, no hidden changes - Trackie is standard Actual Budget plus one small, auditable New Zealand layer to allow multi-user and Akahu sync.
 
 ## Acknowledgements
 
