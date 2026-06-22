@@ -1,6 +1,6 @@
 # Trackie
 
-**Free, private budgeting for New Zealand.** [Trackie](https://trackie.nz) is a hosted deployment of [Actual Budget](https://actualbudget.org) - a fast, private, open-source budgeting app - run free for anyone in Aotearoa. Sign up with your email, get your own private budget, and optionally sync your NZ bank transactions automatically.
+**Free budgeting for New Zealand.** [Trackie](https://trackie.nz) is a hosted deployment of [Actual Budget](https://actualbudget.org) - a fast, private, open-source budgeting app - run free for anyone in Aotearoa. Sign up with your email, get your own private budget, and optionally sync your NZ bank transactions automatically.
 
 No cost, no ads, no data harvesting, New Zealand only.
 
