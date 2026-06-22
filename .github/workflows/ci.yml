@@ -10,7 +10,13 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/ci.yml'
   pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/ci.yml'
   schedule:
     - cron: '0 12 * * 1' # Mondays - early warning before the next upstream bump
 
