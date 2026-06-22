@@ -13,11 +13,12 @@ import { deriveOpenIdIdentity } from '../overlay/packages/sync-server/src/accoun
 
 const SECRET = 'test-identity-secret';
 
-test('verified email -> 64-hex HMAC, normalised (trim + lowercase)', () => {
+test('verified email -> 20-hex truncated HMAC, normalised (trim + lowercase)', () => {
   process.env.ACTUAL_IDENTITY_SECRET = SECRET;
   const a = deriveOpenIdIdentity({ email: 'Bob@Example.com', email_verified: true });
   assert.ok('identity' in a);
-  assert.match(a.identity, /^[0-9a-f]{64}$/);
+  // 80-bit identity: 20 hex chars, truncated from the SHA-256 digest
+  assert.match(a.identity, /^[0-9a-f]{20}$/);
 
   // Different casing/whitespace + the string 'true' must yield the SAME identity.
   const b = deriveOpenIdIdentity({ email: '  bob@example.com ', email_verified: 'true' });

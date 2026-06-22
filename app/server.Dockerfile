@@ -7,6 +7,11 @@
 # We build from a RELEASED Actual tag, not a master commit, so the large surface
 # area (core Actual + web client) is audited/released code; only our small,
 # self-written overlay is custom.
+#
+# SCOPE: because this reuses upstream's PREBUILT web client, it does NOT carry any
+# client (UI) overlay patches - only the sync-server overlay. Use it for
+# server-only rebuilds and local smoke. The SHIPPING image, which includes our
+# client changes, is built by release.Dockerfile via .github/workflows/release.yml.
 
 ARG ACTUAL_VERSION=26.6.0
 

@@ -1,0 +1,74 @@
+diff --git a/packages/desktop-client/src/components/settings/index.tsx b/packages/desktop-client/src/components/settings/index.tsx
+index e9aa929..9d21293 100644
+--- a/packages/desktop-client/src/components/settings/index.tsx
++++ b/packages/desktop-client/src/components/settings/index.tsx
+@@ -16,7 +16,7 @@ import { css } from '@emotion/css';
+ import { getLatestAppVersion } from '#app/appSlice';
+ import { closeBudget } from '#budgetfiles/budgetfilesSlice';
+ import { Link } from '#components/common/Link';
+-import { Checkbox, FormField, FormLabel } from '#components/forms';
++import { FormField, FormLabel } from '#components/forms';
+ import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
+ import { Page } from '#components/Page';
+ import { useServerVersion } from '#components/ServerContext';
+@@ -27,7 +27,6 @@ import { useSyncedPref } from '#hooks/useSyncedPref';
+ import { loadPrefs } from '#prefs/prefsSlice';
+ import { useDispatch, useSelector } from '#redux';
+ 
+-import { AuthSettings } from './AuthSettings';
+ import { Backups } from './Backups';
+ import { BudgetTypeSettings } from './BudgetTypeSettings';
+ import { CurrencySettings } from './Currency';
+@@ -44,17 +43,19 @@ import { AdvancedToggle, Setting } from './UI';
+ function About() {
+   const version = useServerVersion();
+   const versionInfo = useSelector(state => state.app.versionInfo);
+-  const [notifyWhenUpdateIsAvailable, setNotifyWhenUpdateIsAvailablePref] =
+-    useGlobalPref('notifyWhenUpdateIsAvailable', () => {
++  const [notifyWhenUpdateIsAvailable] = useGlobalPref(
++    'notifyWhenUpdateIsAvailable',
++    () => {
+       void dispatch(getLatestAppVersion());
+-    });
++    },
++  );
+   const dispatch = useDispatch();
+ 
+   return (
+     <Setting>
+       <Text>
+         <Trans>
+-          <strong>Actual</strong> is a super fast privacy-focused app for
++          <strong>Trackie</strong> is a super fast privacy-focused app for
+           managing your finances.
+         </Trans>
+       </Text>
+@@ -108,20 +109,6 @@ function About() {
+           </Link>
+         </Text>
+       </View>
+-      <View>
+-        <Text style={{ display: 'flex' }}>
+-          <Checkbox
+-            id="settings-notifyWhenUpdateIsAvailable"
+-            checked={notifyWhenUpdateIsAvailable}
+-            onChange={e =>
+-              setNotifyWhenUpdateIsAvailablePref(e.currentTarget.checked)
+-            }
+-          />
+-          <label htmlFor="settings-notifyWhenUpdateIsAvailable">
+-            <Trans>Display a notification when updates are available</Trans>
+-          </label>
+-        </Text>
+-      </View>
+     </Setting>
+   );
+ }
+@@ -241,7 +228,6 @@ export function Settings() {
+         <FormatSettings />
+         {isCurrencyExperimentalEnabled && <CurrencySettings />}
+         <LanguageSettings />
+-        <AuthSettings />
+         <EncryptionSettings />
+         <BudgetTypeSettings />
+         {isElectron() && <Backups />}

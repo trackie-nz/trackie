@@ -1,0 +1,21 @@
+diff --git a/packages/desktop-client/src/prefs/prefsSlice.ts b/packages/desktop-client/src/prefs/prefsSlice.ts
+index 73724dd..8fd6a7f 100644
+--- a/packages/desktop-client/src/prefs/prefsSlice.ts
++++ b/packages/desktop-client/src/prefs/prefsSlice.ts
+@@ -51,7 +51,15 @@ export const loadPrefs = createAppAsyncThunk(
+     ]);
+ 
+     dispatch(
+-      setPrefs({ local: prefs, global: globalPrefs, synced: syncedPrefs }),
++      setPrefs({
++        local: prefs,
++        global: globalPrefs,
++        /* (Trackie overlay) Seed NZ display defaults - DD/MM/YYYY dates and
++           Monday as the first day of the week - at the single point every synced
++           pref is loaded. The trailing spread means any value the user actually
++           saved still wins. Display-only: never alters stored data. */
++        synced: { dateFormat: 'dd/MM/yyyy', firstDayOfWeekIdx: '1', ...syncedPrefs },
++      }),
+     );
+ 
+     // Certain loot-core utils depend on state outside of the React tree, update them

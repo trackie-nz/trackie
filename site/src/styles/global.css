@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-/* Design tokens lifted from the Claude Design export, exposed as Tailwind
-   utilities (e.g. bg-rust, text-ink, bg-card, shadow-card). */
 @theme {
   --color-rust: #c25a2e;
   --color-rust-soft: #f5ece4;

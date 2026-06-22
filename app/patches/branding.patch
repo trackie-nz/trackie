@@ -1,0 +1,26 @@
+diff --git a/packages/desktop-client/index.html b/packages/desktop-client/index.html
+index f5ddb67..1089308 100644
+--- a/packages/desktop-client/index.html
++++ b/packages/desktop-client/index.html
+@@ -6,7 +6,7 @@
+       name="viewport"
+       content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+     />
+-    <title>Actual</title>
++    <title>Trackie</title>
+     <link rel="shortcut icon" href="/favicon.ico" />
+     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+diff --git a/packages/desktop-client/public/site.webmanifest b/packages/desktop-client/public/site.webmanifest
+index eab0f57..3ed7d4a 100644
+--- a/packages/desktop-client/public/site.webmanifest
++++ b/packages/desktop-client/public/site.webmanifest
+@@ -1,6 +1,6 @@
+ {
+-  "name": "Actual",
+-  "short_name": "Actual",
++  "name": "Trackie",
++  "short_name": "Trackie",
+   "description": "A local-first personal finance tool",
+   "icons": [
+     {

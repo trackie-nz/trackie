@@ -4,6 +4,10 @@ import crypto from 'node:crypto';
 /** Result of deriving an account identity from OpenID userinfo claims. */
 type IdentityResult = { identity: string } | { error: string };
 
+
+// HMAC digest truncated to 20 hex chars
+const IDENTITY_LENGTH = 20;
+
 /**
  * Derive a stable, irreversible account identity from verified OpenID claims.
  *
@@ -38,6 +42,7 @@ export function deriveOpenIdIdentity(userInfo: {
     identity: crypto
       .createHmac('sha256', secret)
       .update(email.toLowerCase())
-      .digest('hex'),
+      .digest('hex')
+      .slice(0, IDENTITY_LENGTH),
   };
 }

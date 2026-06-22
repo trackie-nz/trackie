@@ -1,0 +1,133 @@
+name: Release
+
+# Builds the SHIPPING image - the one that carries our client (UI) changes as well
+# as the sync-server overlay - and publishes it to ghcr.io.
+#
+# Philosophy mirrors upstream's docker-release.yml: compile the JS on the runner,
+# then copy the prebuilt artifacts into a slim runtime image (app/release.Dockerfile)
+# rather than running the ~8GB `build:browser` React compile inside Docker.
+#
+# amd64 only (the target servers are x86), ghcr.io only (no Docker Hub). The image
+# is boot + HTTP smoke-tested BEFORE it is pushed, and gets a build-provenance
+# attestation after the push.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  # Pinned upstream release we overlay onto - keep in sync with ci.yml.
+  ACTUAL_VERSION: '26.6.0'
+  NODE_OPTIONS: '--max_old_space_size=8192'
+  # Skip native binaries the server image never needs (~400 MB, faster install).
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # Both required by actions/attest-build-provenance.
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Checkout overlay repo
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enable Corepack (upstream uses Yarn 4)
+        run: corepack enable
+
+      - name: Clone upstream actual at the pinned tag
+        run: |
+          git clone --depth 1 --branch "v${ACTUAL_VERSION}" \
+            https://github.com/actualbudget/actual.git actual
+
+      - name: Apply the Trackie overlay (drift detector - fails on upstream drift)
+        run: sh app/apply-overlay.sh "$PWD/actual"
+
+      - name: Install dependencies
+        working-directory: actual
+        run: yarn install --immutable || yarn install
+
+      - name: Build the web client (with our patches)
+        working-directory: actual
+        run: yarn build:browser
+
+      - name: Build the sync-server
+        working-directory: actual
+        run: yarn workspace @actual-app/sync-server build
+
+      - name: Trim to production deps and graft the built web client in
+        working-directory: actual
+        # Same final assembly as server-fullbuild.Dockerfile's builder stage, but
+        # done on the runner so release.Dockerfile only has to copy artifacts.
+        run: |
+          yarn workspaces focus @actual-app/sync-server --production
+          rm -rf ./node_modules/@actual-app/web ./node_modules/@actual-app/sync-server
+          mkdir -p ./node_modules/@actual-app/web
+          cp ./packages/desktop-client/package.json ./node_modules/@actual-app/web/package.json
+          cp -r ./packages/desktop-client/build ./node_modules/@actual-app/web/build
+          cp "$GITHUB_WORKSPACE/app/entrypoint.sh" ./entrypoint.sh
+
+      - name: Resolve lowercase image name
+        id: image
+        run: echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build release image (no compile - copies prebuilt artifacts)
+        run: |
+          docker build -f app/release.Dockerfile \
+            -t "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}" \
+            -t "${{ steps.image.outputs.ref }}:latest" \
+            actual
+
+      - name: Boot + HTTP smoke (before any push)
+        run: |
+          docker run -d --name trackie -p 5006:5006 \
+            -e NODE_ENV=production -e ACTUAL_IDENTITY_SECRET=ci-smoke-secret \
+            "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}"
+          for _ in $(seq 1 30); do curl -fsS http://localhost:5006/health >/dev/null && break || sleep 2; done
+          echo "health:"; curl -fsS http://localhost:5006/health; echo
+          echo "owner-created bootstrap (allowlisted, must be 200):"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5006/admin/owner-created/)" = 200
+          echo "GET /admin/users without a session (deny-by-default gateway, must be 401):"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5006/admin/users/)" = 401
+          echo "smoke passed"
+
+      - name: Container logs on smoke failure
+        if: failure()
+        run: docker logs trackie || true
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image to ghcr.io
+        id: push
+        run: |
+          docker push "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}"
+          docker push "${{ steps.image.outputs.ref }}:latest"
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' \
+            "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}" | cut -d@ -f2)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ steps.image.outputs.ref }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
