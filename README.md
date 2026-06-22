@@ -28,5 +28,5 @@ This is the *actual code* that runs trackie.nz, published in the open so anyone 
 
 ## Acknowledgements
 
-Trackie is built on [Actual Budget](https://actualbudget.org) (MIT). NZ bank sync is powered by
-[Akahu](https://akahu.nz). Trackie itself is MIT-licensed - see [LICENSE](LICENSE).
+- Trackie is built on [Actual Budget](https://actualbudget.org) (MIT)
+- NZ bank sync is powered by [Akahu](https://akahu.nz)
