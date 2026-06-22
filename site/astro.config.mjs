@@ -7,5 +7,8 @@ export default defineConfig({
   site: 'https://trackie.nz',
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      tsconfigPaths: true,
+    },
   },
 });

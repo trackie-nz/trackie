@@ -10,12 +10,13 @@
     "check": "astro check"
   },
   "dependencies": {
-    "astro": "^5.13.0"
+    "astro": "^6.4.8",
+    "rolldown": "^1.1.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "@tailwindcss/vite": "^4.1.0",
-    "tailwindcss": "^4.1.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "tailwindcss": "^4.3.1",
     "typescript": "^5.6.0"
   }
 }
