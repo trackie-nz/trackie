@@ -2,18 +2,12 @@
 # Akahu bank sync is deferred/dormant - see akahu-overlay/ENABLE.md.
 #
 # Then:  cp .env.example .env  (fill in OIDC creds)
-#        docker compose up --build   (or: podman-compose up --build)
+#        docker compose pull && docker compose up -d   (or podman-compose)
 # See README.md for the full walkthrough.
 
 services:
   server:
-    build:
-      context: .
-      dockerfile: server.Dockerfile
-      args:
-        # Default keeps the build working even if .env omits ACTUAL_VERSION.
-        # Override in .env to pin a different released tag.
-        ACTUAL_VERSION: ${ACTUAL_VERSION:-26.6.0}
+    image: ghcr.io/alangrainger/trackie:${ACTUAL_VERSION:-26.6.0}
     restart: unless-stopped
     ports:
       - "5006:5006"
