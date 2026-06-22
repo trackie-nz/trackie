@@ -27,8 +27,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - name: Unit tests (identity / PII enforcement)
@@ -41,7 +41,7 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build sync-server image
         run: docker build -f app/server.Dockerfile --build-arg ACTUAL_VERSION="${ACTUAL_VERSION}" -t trackie-server app
       - name: Boot + HTTP smoke
@@ -65,7 +65,7 @@ jobs:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Resolve latest upstream release tag
         id: latest
         run: |
