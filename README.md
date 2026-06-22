@@ -15,8 +15,8 @@ No cost, no ads, no data harvesting, New Zealand only.
 - **Passwordless sign-in** - a one-time code sent to your email. Nothing to remember,
   no password to leak.
 - **Optional end-to-end encryption** you control. Turn it on with your own password
-  and not even the operator can read your budget. (There is no password recovery -
-  keep it safe.)
+  and not even the server can read your budget. (There is no password recovery -
+  keep it safe!)
 - **Optional NZ bank sync** via [Akahu](https://akahu.nz) - connect your own accounts
   so transactions import automatically. Entirely opt-in; Trackie works fully with
   manual import (CSV / OFX / QIF / QFX) and no bank connection at all.
