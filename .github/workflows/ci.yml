@@ -1,0 +1,71 @@
+name: CI
+
+# Verifies the Trackie overlay against upstream Actual Budget:
+#   - unit tests enforce the privacy property (identity is an opaque HMAC)
+#   - applying the overlay is the drift detector (`git apply` fails on drift)
+#   - source assertions enforce "no readable email/name written to the users table"
+#   - an image build + boot smoke confirms the deny-by-default /admin gateway
+# The scheduled drift-warning job flags when a future version bump will need patch regen.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 12 * * 1' # Mondays - early warning before the next upstream bump
+
+env:
+  ACTUAL_VERSION: '26.6.0'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests (identity / PII enforcement)
+        run: node --experimental-strip-types --test app/test/*.test.ts
+      - name: Apply overlay to pinned upstream + assert PII properties (drift detector)
+        run: sh app/test/assert-overlay.sh "${ACTUAL_VERSION}"
+
+  image-smoke:
+    # Heavier: full image build + boot. Skip on plain feature-branch pushes.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build sync-server image
+        run: docker build -f app/server.Dockerfile --build-arg ACTUAL_VERSION="${ACTUAL_VERSION}" -t trackie-server app
+      - name: Boot + HTTP smoke
+        run: |
+          docker run -d --name trackie -p 5006:5006 \
+            -e NODE_ENV=production -e ACTUAL_IDENTITY_SECRET=ci-smoke-secret trackie-server
+          for _ in $(seq 1 30); do curl -fsS http://localhost:5006/health >/dev/null && break || sleep 2; done
+          echo "health:"; curl -fsS http://localhost:5006/health; echo
+          echo "owner-created bootstrap (allowlisted, must be 200):"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5006/admin/owner-created/)" = 200
+          echo "GET /admin/users without a session (deny-by-default gateway, must be 401):"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5006/admin/users/)" = 401
+          echo "smoke passed"
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs trackie || true
+
+  drift-warning:
+    # Does the overlay still apply to the LATEST upstream release? A failure here
+    # means the next ACTUAL_VERSION bump will need the patches regenerated.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve latest upstream release tag
+        id: latest
+        run: |
+          ver=$(curl -fsS https://api.github.com/repos/actualbudget/actual/releases/latest \
+            | grep -oP '"tag_name":\s*"v\K[^"]+')
+          echo "ver=$ver" >> "$GITHUB_OUTPUT"
+          echo "latest upstream release: $ver"
+      - name: Apply overlay to latest + assert
+        run: sh app/test/assert-overlay.sh "${{ steps.latest.outputs.ver }}"

@@ -1,0 +1,114 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const h2 = 'mt-[40px] mb-[12px] text-[24px] font-extrabold tracking-[-0.02em] text-ink';
+const p = 'mt-[12px] text-[16.5px] leading-[1.7] text-[#5e574f]';
+const li = 'text-[16.5px] leading-[1.7] text-[#5e574f]';
+const link = 'text-rust underline underline-offset-2';
+---
+
+<Layout
+  title="Privacy Policy - Trackie"
+  description="How Trackie collects, uses and protects your data. No ads, no tracking, no data sale - and no plaintext email stored."
+>
+  <article
+    class="mt-[8px] rounded-[30px] border border-[rgba(43,39,36,0.07)] bg-white px-[28px] py-[48px] sm:px-[64px] sm:py-[64px]"
+  >
+    <div class="mx-auto max-w-[760px]">
+      <h1 class="m-0 text-[40px] leading-[1.05] font-extrabold tracking-[-0.025em] text-ink">
+        Privacy Policy
+      </h1>
+      <p class="mt-[14px] text-[15px] text-muted-2">Last updated: 22 June 2026</p>
+
+      <p class={p}>
+        Trackie (<a href="https://trackie.nz" class={link}>trackie.nz</a>) is a free,
+        privacy-focused budgeting service for New Zealand, run by Alan Grainger and
+        built on the open-source <a href="https://actualbudget.org" class={link}
+          >Actual Budget</a
+        >. This policy explains what data Trackie handles, why, and the control you
+        have over it. The short version: no ads, no tracking, no data sale - and your
+        email is never stored in a form anyone can read.
+      </p>
+
+      <h2 class={h2}>What we collect</h2>
+      <ul class="mt-[12px] list-disc space-y-[10px] pl-[22px]">
+        <li class={li}>
+          <strong class="font-bold text-ink">Your email, for login only.</strong> Sign
+          in is handled by a specialist identity provider over OpenID Connect. We never
+          receive or store your password. Your email is stored only as an irreversible
+          <code class="rounded bg-rust-soft px-[5px] py-[1px] text-[14px]">HMAC-SHA256</code>
+          token - no column in the budget database holds a recoverable email or name. This is
+          enforced by automated tests, not just promised here.
+        </li>
+        <li class={li}>
+          <strong class="font-bold text-ink">Your budget data.</strong> The categories,
+          transactions and notes you enter. This is yours alone; no other user can see it.
+          You can optionally <strong class="font-bold">encrypt your budget data with a
+          password</strong>, which means not even the server can read it.
+        </li>
+        <li class={li}>
+          <strong class="font-bold text-ink">An optional bank connection.</strong> If
+          you choose to connect an NZ bank through <a href="https://akahu.nz" class={link}
+            >Akahu</a
+          >, that access is <strong class="font-bold">read-only</strong> and
+          per-user, and the resulting token is encrypted at rest. Trackie can see your
+          transactions to help you budget, but it can never move your money. Bank sync is
+          entirely optional - importing a statement by hand is a fully supported way to
+          use Trackie.
+        </li>
+      </ul>
+
+      <h2 class={h2}>What we don't do</h2>
+      <p class={p}>
+        No ads. No analytics, tracking or telemetry. We do not sell, rent or mine your
+        financial data - ever. There is no third-party advertising or behavioural
+        tracking anywhere on the service.
+      </p>
+
+      <h2 class={h2}>Where your data lives</h2>
+      <p class={p}>
+        Access is restricted to New Zealand and served only over HTTPS. Each user's
+        budget and any bank connection are isolated to that user. Login is delegated to a
+        self-hosted identity provider, so passwords never reach the budgeting service.
+      </p>
+
+      <h2 class={h2}>Your control</h2>
+      <ul class="mt-[12px] list-disc space-y-[10px] pl-[22px]">
+        <li class={li}>
+          <strong class="font-bold text-ink">Export any time.</strong> You can export your
+          full budget whenever you like. There is no lock-in.
+        </li>
+        <li class={li}>
+          <strong class="font-bold text-ink">Disconnect any time.</strong> Any bank
+          connection can be switched off whenever you choose.
+        </li>
+        <li class={li}>
+          <strong class="font-bold text-ink">Delete your account.</strong> Removing your
+          account removes your budget files and, by cascade, any Akahu connection. Dormant
+          or empty accounts may be cleaned up periodically as part of storage and abuse
+          management.
+        </li>
+      </ul>
+
+      <h2 class={h2}>Transparency</h2>
+      <p class={p}>
+        The exact code that runs this service is <a
+          href="https://github.com/alangrainger/trackie"
+          class={link}>public on GitHub</a
+        >. The entire difference from upstream Actual Budget is published and
+        intentionally small, so anyone can confirm precisely what handles your data.
+      </p>
+
+      <h2 class={h2}>Contact</h2>
+      <p class={p}>
+        Questions about your privacy, or want to report a security issue? See the
+        <a href="https://github.com/alangrainger/trackie/blob/main/SECURITY.md" class={link}
+          >security policy</a
+        > on GitHub, or get in touch with <a
+          href="https://github.com/alangrainger"
+          class={link}>Alan Grainger</a
+        >.
+      </p>
+    </div>
+  </article>
+</Layout>

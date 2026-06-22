@@ -1,0 +1,38 @@
+---
+import logo from '../assets/logo-black.svg';
+---
+
+<footer class="mt-16 border-t border-[rgba(43,39,36,0.1)] px-[4px] pt-[46px] pb-[8px]">
+  <div class="grid gap-[48px] md:grid-cols-[0.8fr_1.2fr]">
+    <div>
+      <img src={logo.src} alt="Trackie" class="mb-[14px] block h-[32px] w-auto" />
+      <p class="m-0 text-[14px] leading-[1.5] text-muted-2">
+        Made in Aotearoa · New Zealand only · No ads, no tracking, no data sale.
+      </p>
+      <p class="mt-[14px] text-[14px]">
+        <a
+          href="/privacy"
+          class="text-rust underline underline-offset-2"
+        >Privacy Policy</a>
+      </p>
+    </div>
+    <div>
+      <p class="m-0 max-w-[560px] text-[15px] leading-[1.7] text-muted">
+        Built on <a
+          href="https://github.com/actualbudget/actual"
+          class="text-rust underline underline-offset-2">Actual Budget</a
+        > (open source) and run by <a
+          href="https://github.com/alangrainger"
+          class="text-rust underline underline-offset-2">Alan Grainger</a
+        >, who builds and runs other free, privacy-focused services. NZ bank sync
+        powered by <a
+          href="https://akahu.nz"
+          class="text-rust underline underline-offset-2">Akahu</a
+        >. The exact code that runs this service is <a
+          href="https://github.com/alangrainger/trackie"
+          class="text-rust underline underline-offset-2">public on GitHub</a
+        >, so you can check precisely what handles your data.
+      </p>
+    </div>
+  </div>
+</footer>

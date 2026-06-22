@@ -1,0 +1,40 @@
+# Self-hosted NZ Actual Budget (privacy sign-in + /get-started deep link).
+# Akahu bank sync is deferred/dormant - see akahu-overlay/ENABLE.md.
+#
+# Then:  cp .env.example .env  (fill in OIDC creds)
+#        docker compose up --build   (or: podman-compose up --build)
+# See README.md for the full walkthrough.
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server.Dockerfile
+      args:
+        # Default keeps the build working even if .env omits ACTUAL_VERSION.
+        # Override in .env to pin a different released tag.
+        ACTUAL_VERSION: ${ACTUAL_VERSION:-26.6.0}
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    volumes:
+      - ${DATA_PATH:-./data}:/data
+    environment:
+      NODE_ENV: production
+      # --- self-service signup ---
+      ACTUAL_LOGIN_METHOD: openid
+      ACTUAL_OPENID_ENFORCE: "true"          # everyone in via the IdP; no password login
+      ACTUAL_USER_CREATION_MODE: login       # auto-provision any IdP-authenticated user
+      ACTUAL_OPENID_DISCOVERY_URL: ${OIDC_DISCOVERY_URL}
+      ACTUAL_OPENID_CLIENT_ID: ${OIDC_CLIENT_ID}
+      ACTUAL_OPENID_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      ACTUAL_OPENID_SERVER_HOSTNAME: ${SERVER_HOSTNAME}
+      # Sessions expire 90 days after login (value is in seconds), so a leaked
+      # session token is not valid forever. Upstream applies it as now + N at
+      # login; existing "never" sessions keep going until the user next signs in.
+      ACTUAL_TOKEN_EXPIRATION: 7776000   # 90 days
+      # --- Identity: HMAC key for user_name. Generate once; NEVER rotate
+      #     (rotating orphans every existing user from their budget). ---
+      ACTUAL_IDENTITY_SECRET: ${ACTUAL_IDENTITY_SECRET}
+      # --- Akahu NZ bank sync is deferred (dormant). To switch it on, follow
+      #     akahu-overlay/ENABLE.md, which re-adds ACTUAL_AKAHU_APP_* here. ---

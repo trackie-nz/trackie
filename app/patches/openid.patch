@@ -1,0 +1,78 @@
+diff --git a/packages/sync-server/src/accounts/openid.ts b/packages/sync-server/src/accounts/openid.ts
+index f907915..b135658 100644
+--- a/packages/sync-server/src/accounts/openid.ts
++++ b/packages/sync-server/src/accounts/openid.ts
+@@ -15,6 +15,7 @@ import {
+ import { TOKEN_EXPIRATION_NEVER } from '#util/validate-user';
+
+ import { checkPassword } from './password';
++import { deriveOpenIdIdentity } from './trackie-identity';
+
+ export type ConfigParameter = {
+   issuer?: string;
+@@ -167,7 +168,8 @@ export async function loginWithOpenIdSetup(returnUrl, config?) {
+   const url = client.authorizationUrl({
+     response_type: 'code',
+     scope: 'openid email profile',
+     state,
+     code_challenge,
+     code_challenge_method: 'S256',
++    prompt: 'login',
+   });
+@@ -233,16 +235,11 @@ export async function loginWithOpenIdFinalize(body) {
+       });
+     }
+     const userInfo = await client.userinfo(tokenSet.access_token);
+-    const identity =
+-      userInfo.preferred_username ??
+-      userInfo.login ??
+-      userInfo.email ??
+-      userInfo.id ??
+-      userInfo.sub;
+-
+-    if (identity == null) {
+-      return { error: 'openid-grant-failed: no identification was found' };
++    const identityResult = deriveOpenIdIdentity(userInfo);
++    if ('error' in identityResult) {
++      return { error: identityResult.error };
+     }
++    const identity = identityResult.identity;
+
+     let userId = null;
+     try {
+@@ -269,7 +266,7 @@ export async function loginWithOpenIdFinalize(body) {
+             [
+               userId,
+               identity,
+-              userInfo.name ?? userInfo.email ?? identity,
++              '',
+               countUsersWithUserName === 0 ? '1' : '0',
+               countUsersWithUserName === 0 ? 'ADMIN' : 'BASIC',
+             ],
+@@ -282,9 +279,9 @@ export async function loginWithOpenIdFinalize(body) {
+             }
+           }
+         } else {
+-          const { id: userIdFromDb, display_name: displayName } =
++          const { id: userIdFromDb } =
+             accountDb.first(
+-              'SELECT id, display_name FROM users WHERE user_name = ? and enabled = 1',
++              'SELECT id FROM users WHERE user_name = ? and enabled = 1',
+               [identity],
+             ) || {};
+
+@@ -292,12 +289,8 @@ export async function loginWithOpenIdFinalize(body) {
+             throw new Error('openid-grant-failed');
+           }
+
+-          if (!displayName && userInfo.name) {
+-            accountDb.mutate('UPDATE users set display_name = ? WHERE id = ?', [
+-              userInfo.name,
+-              userIdFromDb,
+-            ]);
+-          }
++          // (Trackie overlay) Never persist IdP-supplied name/email into
++          // display_name - PII stays in the identity provider, not Trackie's DB.
+
+           userId = userIdFromDb;
+         }

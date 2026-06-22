@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+
+/* Design tokens lifted from the Claude Design export, exposed as Tailwind
+   utilities (e.g. bg-rust, text-ink, bg-card, shadow-card). */
+@theme {
+  --color-rust: #c25a2e;
+  --color-rust-soft: #f5ece4;
+  --color-cream: #e7e3dd;
+  --color-card: #f5f0e7;
+  --color-ink: #2b2724;
+  --color-muted: #6b645d;
+  --color-muted-2: #8a837b;
+  --color-faint: #4a443e;
+  --color-panel: #6c6469;
+
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+
+  --shadow-card: 0 18px 50px -28px rgba(43, 39, 36, 0.35);
+  --shadow-cta: 0 10px 22px -10px rgba(194, 90, 46, 0.7);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-rust);
+  color: #fff;
+}
+
+/* Hero photo fades into the cream card along its left edge. */
+.hero-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 16%, #000 38%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 16%, #000 38%);
+}

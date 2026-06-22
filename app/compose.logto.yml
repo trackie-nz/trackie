@@ -1,0 +1,69 @@
+# Self-hosted Logto identity provider - optional overlay on compose.yml.
+#
+#   docker compose -f compose.yml -f compose.logto.yml up --build
+#   (or: podman-compose -f compose.yml -f compose.logto.yml up --build)
+#
+# The base compose.yml is identity-provider-agnostic (point OIDC_* at anything).
+# This overlay is the actual login layer for trackie.nz - self-hosted
+# Logto with passwordless email - published so the FULL live stack, not just the
+# Actual server, is auditable and reproducible.
+#
+# It brings up Logto + its own Postgres (with a persistent volume) declaratively.
+# Three things still require the Logto admin console once, after first boot
+# (each is detailed just below): RSA signing keys, the SMTP email connector, and
+# registering Actual as an application.
+#   * RSA signing keys - Actual requires RS256. Either set LOGTO_OIDC_PRIVATE_KEY
+#     below, or rotate EC -> RSA in the console (Signing keys).
+#   * Email connector  - point Logto's SMTP connector at your mail host so login
+#     codes are delivered (passwordless email is the only sign-in method).
+#   * Application      - register Actual as a Traditional Web app; redirect URI
+#     <SERVER_HOSTNAME>/openid/callback. Copy issuer/client id/secret into OIDC_*.
+#
+# Run Logto and Actual behind a TLS reverse proxy; LOGTO_ENDPOINT /
+# LOGTO_ADMIN_ENDPOINT must be the public https URLs users and Actual reach.
+
+services:
+  logto-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${LOGTO_DB_USER:-logto}
+      POSTGRES_PASSWORD: ${LOGTO_DB_PASSWORD:?set LOGTO_DB_PASSWORD in .env}
+      POSTGRES_DB: ${LOGTO_DB_NAME:-logto}
+    volumes:
+      - logto-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOGTO_DB_USER:-logto}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  logto:
+    image: svhd/logto:${LOGTO_TAG:-latest}   # pin LOGTO_TAG in .env; never ship :latest
+    restart: unless-stopped
+    depends_on:
+      logto-db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"   # OIDC endpoint - front with your reverse proxy as auth.trackie.nz
+      - "3002:3002"   # Admin console - restrict/firewall this; do not expose publicly
+    environment:
+      TRUST_PROXY_HEADER: "1"                # running behind a TLS reverse proxy
+      DB_URL: postgres://${LOGTO_DB_USER:-logto}:${LOGTO_DB_PASSWORD}@logto-db:5432/${LOGTO_DB_NAME:-logto}
+      ENDPOINT: ${LOGTO_ENDPOINT:?set LOGTO_ENDPOINT in .env}
+      ADMIN_ENDPOINT: ${LOGTO_ADMIN_ENDPOINT:?set LOGTO_ADMIN_ENDPOINT in .env}
+      # Optional: inline RSA private key (PEM) so Actual's RS256 works without a
+      # console rotation. Blank => Logto generates EC keys; rotate to RSA in the
+      # console after first boot (simplest path - .env multiline values are fiddly).
+      OIDC_PRIVATE_KEYS: ${LOGTO_OIDC_PRIVATE_KEY:-}
+    # First boot needs an explicit schema seed; `--swe` makes it a no-op on
+    # restart. This is Logto's own documented entrypoint.
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/oidc/.well-known/openid-configuration"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  logto-db:

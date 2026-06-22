@@ -1,0 +1,9 @@
+.env
+data/
+.idea
+.DS_Store
+
+# Astro site
+node_modules/
+site/dist/
+site/.astro/

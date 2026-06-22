@@ -1,0 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import { GET_STARTED_URL } from '../consts';
+import heroPhoto from '../assets/header-photo.webp';
+---
+
+<section
+  id="top"
+  class="overflow-hidden rounded-[30px] bg-card shadow-card"
+>
+  <div class="grid grid-cols-1 md:grid-cols-[1.04fr_0.96fr]">
+    <div class="flex flex-col justify-center px-[30px] py-[56px] sm:px-[58px] sm:pt-[62px]">
+      <h1 class="m-0 text-[42px] leading-[1.02] font-extrabold tracking-[-0.025em] text-balance text-ink sm:text-[55px]">
+        Money&nbsp;sorted.<br>Feet&nbsp;up.
+      </h1>
+      <p class="mt-[24px] max-w-[430px] text-[19px] leading-[1.5] text-pretty text-muted">
+        A budgeting app for New Zealand. Free for everyone; free forever. Sweet&nbsp;as.
+      </p>
+      <div class="mt-[38px] flex flex-wrap items-center gap-[22px]">
+        <a
+          href={GET_STARTED_URL}
+          class="rounded-full bg-rust px-[38px] py-[17px] text-[17px] font-bold text-white no-underline shadow-cta"
+        >
+          Get started
+        </a>
+      </div>
+    </div>
+    <div class="relative min-h-[300px] md:min-h-[540px]">
+      <Image
+        src={heroPhoto}
+        alt=""
+        loading="eager"
+        class="hero-mask absolute inset-0 h-full w-full object-cover"
+      />
+    </div>
+  </div>
+</section>

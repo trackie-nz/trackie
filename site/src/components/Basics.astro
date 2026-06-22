@@ -1,0 +1,55 @@
+---
+const cardClass =
+  'rounded-[22px] border border-[rgba(43,39,36,0.07)] bg-white px-[30px] py-[32px]';
+const iconWrap =
+  'mb-[22px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-rust-soft';
+const heading = 'm-0 text-[20px] font-bold tracking-[-0.01em] text-ink';
+const body = 'mt-[12px] text-[15.5px] leading-[1.6] text-muted';
+---
+
+<section id="basics" class="px-[4px] pt-[84px] pb-[8px]">
+  <div class="max-w-[560px]">
+    <h2 class="m-0 text-[34px] font-extrabold tracking-[-0.02em] text-ink">The basics</h2>
+    <p class="mt-[12px] text-[18px] leading-[1.5] text-muted">
+      No catch, no clever stuff. Here's what you're getting.
+    </p>
+  </div>
+
+  <div class="mt-[40px] grid grid-cols-1 gap-[22px] md:grid-cols-3">
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"></path></svg>
+      </div>
+      <h3 class={heading}>It's free and always will be</h3>
+      <p class={body}>
+        This is a passion project from someone who has been helped by the NZ
+        personal finance community, and wants to give something back.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      </div>
+      <h3 class={heading}>Your own private budget</h3>
+      <p class={body}>
+        Created the moment you sign in with your email. It's yours alone - no one
+        else can see it, and you can export it and walk away any time. No lock-in.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+      </div>
+      <h3 class={heading}>Bank sync, when you want it</h3>
+      <p class="mt-[12px] mb-[14px] text-[15.5px] leading-[1.6] text-muted">
+        Import a statement by hand (it's easy), or - soon - connect your NZ bank
+        through Akahu so it imports itself. Totally optional.
+      </p>
+      <span class="inline-block rounded-full bg-rust-soft px-[13px] py-[6px] text-[13px] font-bold text-rust">
+        NZ bank sync coming soon
+      </span>
+    </div>
+  </div>
+</section>

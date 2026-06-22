@@ -1,0 +1,29 @@
+diff --git a/packages/sync-server/src/app.ts b/packages/sync-server/src/app.ts
+index e171d4d..9a4af25 100644
+--- a/packages/sync-server/src/app.ts
++++ b/packages/sync-server/src/app.ts
+@@ -13,6 +13,8 @@ import * as corsApp from './app-cors-proxy';
+ import * as enableBankingApp from './app-enablebanking/app-enablebanking';
+ import * as goCardlessApp from './app-gocardless/app-gocardless';
+ import * as openidApp from './app-openid';
++import * as getStartedApp from './app-getstarted.js';
++import { trackieAdminGuard } from './util/trackie-admin-guard.js';
+ import * as pluggai from './app-pluggyai/app-pluggyai';
+ import * as secretApp from './app-secrets';
+ import * as simpleFinApp from './app-simplefin/app-simplefin';
+@@ -58,6 +60,7 @@ app.use(
+ app.use('/sync', syncApp.handlers);
+ app.use('/account', accountApp.handlers);
+ app.use('/gocardless', goCardlessApp.handlers);
++app.use('/get-started', getStartedApp.handlers);
+ app.use('/simplefin', simpleFinApp.handlers);
+ app.use('/pluggyai', pluggai.handlers);
+ app.use('/enablebanking', enableBankingApp.handlers);
+@@ -67,6 +70,7 @@ if (config.get('corsProxy.enabled')) {
+   app.use('/cors-proxy', corsApp.handlers);
+ }
+ 
++app.use('/admin', trackieAdminGuard);
+ app.use('/admin', adminApp.handlers);
+ app.use('/openid', openidApp.handlers);
+ 

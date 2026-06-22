@@ -1,0 +1,44 @@
+---
+const steps = [
+  {
+    n: '1',
+    title: 'Enter your email',
+    body: 'We send you a one-time code.',
+  },
+  {
+    n: '2',
+    title: 'Pop in the code',
+    body: "That's your login. Quick, and no password to remember.",
+  },
+  {
+    n: '3',
+    title: 'Start budgeting',
+    body: 'Your private budget is ready and waiting. Feet up.',
+  },
+];
+---
+
+<section id="start" class="px-[4px] pt-[88px] pb-[8px]">
+  <div class="max-w-[560px]">
+    <h2 class="m-0 text-[34px] font-extrabold tracking-[-0.02em] text-ink">Getting started</h2>
+    <p class="mt-[12px] text-[18px] leading-[1.5] text-muted">
+      About a minute, and no password to invent.
+    </p>
+  </div>
+
+  <div class="mt-[46px] grid grid-cols-1 gap-[40px] md:grid-cols-3">
+    {
+      steps.map((step) => (
+        <div class="rounded-[22px] border border-[rgba(43,39,36,0.07)] bg-white px-[30px] py-[32px]">
+          <div class="flex items-baseline gap-[14px]">
+            <span class="text-[44px] leading-none font-extrabold tracking-[-0.03em] text-rust">
+              {step.n}
+            </span>
+            <h3 class="m-0 text-[20px] font-bold text-ink">{step.title}</h3>
+          </div>
+          <p class="mt-[16px] text-[15.5px] leading-[1.6] text-muted">{step.body}</p>
+        </div>
+      ))
+    }
+  </div>
+</section>
