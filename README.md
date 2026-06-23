@@ -26,7 +26,7 @@ No cost, no ads, no data harvesting, New Zealand only.
 
 ## Why this repository exists
 
-This is the *actual code* that runs trackie.nz, published in the open so anyone can verify exactly what happens to their financial data. No analytics, no tracking, no hidden changes - Trackie is standard Actual Budget plus one small, auditable New Zealand layer to allow multi-user and Akahu sync.
+This is the *actual code* that runs trackie.nz, published in the open so anyone can verify exactly what happens to their financial data. No analytics, no tracking, no hidden changes - Trackie is standard Actual Budget plus a small, auditable New Zealand layer to allow multi-user and Akahu sync.
 
 ## Acknowledgements
 
