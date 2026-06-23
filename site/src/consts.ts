@@ -7,7 +7,7 @@ export const GET_STARTED_URL = `${APP_URL}/get-started`;
 /** Top-nav links */
 export const NAV_LINKS: { label: string; href: string }[] = [
     {
-        label: 'Docs',
+        label: 'Docs / Help',
         href:'https://actualbudget.org/docs/'
     }
 ];
