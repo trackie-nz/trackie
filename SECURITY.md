@@ -10,7 +10,7 @@ the hardened bank-connect flow - is documented in
 Please report security issues **privately** rather than opening a public issue, so
 they can be fixed before public disclosure.
 
-- **Security contact:** [Send an advisory through Github](https://github.com/alangrainger/trackie/security/advisories)
+- **Security contact:** [Send an advisory through Github](https://github.com/trackie-nz/trackie/security/advisories)
 
 When reporting, please include enough detail to reproduce the issue (affected
 endpoint or page, steps, and impact). You will get an acknowledgement, updates as the
