@@ -9,9 +9,5 @@ export const NAV_LINKS: { label: string; href: string }[] = [
     {
         label: 'Docs',
         href:'https://actualbudget.org/docs/'
-    },
-    {
-        label: 'Privacy',
-        href:'/privacy'
     }
 ];
