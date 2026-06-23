@@ -23,11 +23,15 @@ WORKDIR /app
 RUN git clone https://github.com/actualbudget/actual.git . \
     && git checkout "v${ACTUAL_VERSION}"
 
-# Apply the NZ core overlay (file drop-ins + in-place anchor patches).
+# Apply the NZ core overlay (file drop-ins + in-place anchor patches), then inject
+# the Trackie theme CSS from the theme repo (see app/inject-theme.mjs). This path
+# compiles the client from source, so it must bake the theme like release.yml does.
 COPY overlay/ ./overlay/
 COPY patches/ ./patches/
 COPY apply-overlay.sh ./apply-overlay.sh
+COPY inject-theme.mjs ./inject-theme.mjs
 RUN sh ./apply-overlay.sh .
+RUN node ./inject-theme.mjs .
 
 # Build the server (and the web client it serves).
 ENV NODE_OPTIONS=--max_old_space_size=8192

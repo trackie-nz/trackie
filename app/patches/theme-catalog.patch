@@ -1,0 +1,27 @@
+diff --git a/packages/desktop-client/src/hooks/useThemeCatalog.ts b/packages/desktop-client/src/hooks/useThemeCatalog.ts
+index db92ede..83b3d7e 100644
+--- a/packages/desktop-client/src/hooks/useThemeCatalog.ts
++++ b/packages/desktop-client/src/hooks/useThemeCatalog.ts
+@@ -4,6 +4,13 @@ import type { CatalogTheme } from '#style/customThemes';
+ 
+ const CATALOG_URL = `https://raw.githubusercontent.com/actualbudget/actual/${process.env.REACT_APP_BRANCH || 'master'}/packages/desktop-client/src/data/customThemeCatalog.json`;
+ 
++const TRACKIE_CATALOG_THEME: CatalogTheme = {
++  name: 'Trackie',
++  repo: 'trackie-nz/trackie-theme',
++  mode: 'light',
++  colors: ['#F9F7F2', '#F35B16', '#22201D', '#16A34A'],
++};
++
+ /**
+  * Custom hook to fetch and manage the theme catalog from GitHub.
+  */
+@@ -31,7 +38,7 @@ export function useThemeCatalog() {
+           throw new Error('Invalid catalog format: expected an array');
+         }
+ 
+-        setData(data);
++        setData([TRACKIE_CATALOG_THEME, ...data]);
+       } catch (err) {
+         setError(
+           err instanceof Error ? err.message : 'Failed to load theme catalog',

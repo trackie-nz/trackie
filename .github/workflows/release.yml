@@ -57,6 +57,9 @@ jobs:
       - name: Apply the Trackie overlay (drift detector - fails on upstream drift)
         run: sh app/apply-overlay.sh "$PWD/actual"
 
+      - name: Inject the Trackie theme CSS from trackie-nz/trackie-theme
+        run: node app/inject-theme.mjs "$PWD/actual"
+
       - name: Install dependencies
         working-directory: actual
         run: yarn install --immutable || yarn install
