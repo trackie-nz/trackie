@@ -1,0 +1,41 @@
+diff --git a/packages/loot-core/src/server/preferences/app.ts b/packages/loot-core/src/server/preferences/app.ts
+index 8181814..fefa077 100644
+--- a/packages/loot-core/src/server/preferences/app.ts
++++ b/packages/loot-core/src/server/preferences/app.ts
+@@ -15,6 +15,8 @@ import { undoable } from '#server/undo';
+ import { stringToInteger } from '#shared/util';
+ import type { GlobalPrefs, MetadataPrefs, SyncedPrefs } from '#types/prefs';
+ 
++import { TRACKIE_INSTALLED_THEME } from './trackie-theme';
++
+ export type PreferencesHandlers = {
+   'preferences/save': typeof saveSyncedPrefs;
+   'preferences/get': typeof getSyncedPrefs;
+@@ -173,20 +175,23 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
+       theme === 'auto' ||
+       theme === 'midnight'
+         ? theme
+-        : 'auto',
++        : 'light', // (Trackie overlay) default light so the seeded Trackie theme shows
+     preferredDarkTheme:
+       preferredDarkTheme === 'dark' || preferredDarkTheme === 'midnight'
+         ? preferredDarkTheme
+         : 'dark',
+-    installedCustomLightTheme: installedCustomLightTheme || undefined,
++    // (Trackie overlay) Seed the Trackie theme as the default. Picking any
++    // built-in theme stores 'null' here (truthy), so a user's removal sticks.
++    installedCustomLightTheme:
++      installedCustomLightTheme || TRACKIE_INSTALLED_THEME,
+     installedCustomDarkTheme: installedCustomDarkTheme || undefined,
+     customCssOverride: customCssOverride || undefined,
+     serverSelfSignedCert: serverSelfSignedCert || undefined,
+     syncServerConfig: syncServerConfig || undefined,
+     notifyWhenUpdateIsAvailable:
+       notifyWhenUpdateIsAvailable === undefined
+-        ? true
+-        : notifyWhenUpdateIsAvailable, // default to true
++        ? false
++        : notifyWhenUpdateIsAvailable, // (Trackie overlay) default off - opt-in is removed from settings
+   };
+ }
+ 

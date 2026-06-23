@@ -25,8 +25,7 @@ effect in a full client build (not the fast `server.Dockerfile` shortcut).
 | `openid.patch` | `sync-server/.../accounts/openid.ts` | Imports `trackie-identity`, derives the account identity via `deriveOpenIdIdentity` (HMAC of verified email), stores `display_name` empty, and removes the later-login re-write so no IdP name/email is ever persisted. |
 | `prefs-defaults.patch` | `desktop-client/.../prefs/prefsSlice.ts` | Seeds NZ display defaults (DD/MM/YYYY dates, Monday first day of week) at the single `loadPrefs` injection point; a trailing spread lets any saved value win. Display-only.                                             |
 | `settings-page.patch` | `desktop-client/.../settings/index.tsx` | Removes the Authentication-method section (#3) and the update-notification opt-in checkbox (#8), and rebrands the About tagline to "Trackie" (#6). Keeps the Release Notes link.                                        |
-| `trackie-theme.patch` | `desktop-client/.../style/theme.tsx` | Change the default theme.                                                                                                                                                                                               |
-| `update-notify-default.patch` | `loot-core/.../preferences/app.ts` | Defaults `notifyWhenUpdateIsAvailable` off (belt-and-braces with removing the opt-in), so the "New version available" link stays hidden.                                                                                |
+| `loot-core-prefs.patch` | `loot-core/.../preferences/app.ts` | Global-pref defaults: seeds the Trackie theme as a pre-installed light custom theme (drop-in `preferences/trackie-theme.ts`) and defaults the base theme to light so it shows - a user can pick any built-in theme to remove it (#4); defaults `notifyWhenUpdateIsAvailable` off (#8). |
 
 ## Regenerating a patch (after an upstream bump, or to edit one)
 

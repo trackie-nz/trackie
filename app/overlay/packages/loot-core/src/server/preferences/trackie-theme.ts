@@ -1,10 +1,7 @@
 /**
- * Change the default theme to be Butterfly theme, from
- * https://github.com/samekh248/actual-butterfly-theme
- *
- * Users can change this back to any theme they prefer.
+ * Trackie's default theme. Based on https://github.com/samekh248/actual-butterfly-theme
  */
-export const TRACKIE_THEME_CSS = `:root {
+const TRACKIE_THEME_CSS = `:root {
   /* --- SANDSTONE FOUNDATION --- */
   --color-pageBackground: #F9F7F2; 
   --color-pageBackgroundTopLeft: #F9F7F2;
@@ -268,3 +265,16 @@ export const TRACKIE_THEME_CSS = `:root {
   --color-markdownDark: #12110F;
   --color-markdownLight: #726E66;
 }`;
+
+/**
+ * Serialised InstalledTheme seeded as the default light theme. `repo` keeps the
+ * original author's repo so credit shows through Actual's theme UI; `name` is
+ * the user-facing label.
+ */
+export const TRACKIE_INSTALLED_THEME = JSON.stringify({
+  id: 'trackie',
+  name: 'Trackie',
+  repo: 'alangrainger/trackie',
+  cssContent: TRACKIE_THEME_CSS,
+  baseTheme: 'light',
+});
