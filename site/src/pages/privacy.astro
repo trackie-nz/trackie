@@ -46,16 +46,6 @@ const link = 'text-rust underline underline-offset-2';
           You can optionally <strong class="font-bold">encrypt your budget data with a
           password</strong>, which means not even the server can read it.
         </li>
-        <li class={li}>
-          <strong class="font-bold text-ink">An optional bank connection.</strong> If
-          you choose to connect an NZ bank through <a href="https://akahu.nz" class={link}
-            >Akahu</a
-          >, that access is <strong class="font-bold">read-only</strong> and
-          per-user, and the resulting token is encrypted at rest. Trackie can see your
-          transactions to help you budget, but it can never move your money. Bank sync is
-          entirely optional - importing a statement by hand is a fully supported way to
-          use Trackie.
-        </li>
       </ul>
 
       <h2 class={h2}>What we don't do</h2>
@@ -84,9 +74,8 @@ const link = 'text-rust underline underline-offset-2';
         </li>
         <li class={li}>
           <strong class="font-bold text-ink">Delete your account.</strong> Removing your
-          account removes your budget files and, by cascade, any Akahu connection. Dormant
-          or empty accounts may be cleaned up periodically as part of storage and abuse
-          management.
+          account removes your budget file. Dormant accounts (6+ months of inactivity)
+          may be cleaned up periodically as part of storage management.
         </li>
       </ul>
 

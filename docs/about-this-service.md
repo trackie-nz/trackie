@@ -16,24 +16,6 @@ information is kept safe.
 - [If you stop using the service](#if-you-stop-using-the-service)
 - [You can check the code yourself](#you-can-check-the-code-yourself)
 
-## You do not need to connect a bank
-
-**Read this first, because it matters: bank connection is entirely optional.**
-
-Actual Budget works wonderfully without ever linking a bank account. You can import
-your transactions by hand - download a statement (CSV, OFX, QIF or QFX) from your
-internet banking and upload it, or just type transactions in. This is a completely
-normal, fully supported way to use Actual. The person running this service budgeted
-this way for four years, importing statements manually every time, and it works
-brilliantly.
-
-So if you would rather not connect a bank - for privacy, peace of mind, or any reason
-at all - **you lose nothing.** You get the full budgeting app. Automatic NZ bank sync
-(via Akahu) is offered later as a convenience for people who want it, and nothing
-more. You can ignore it forever.
-
-The rest of this page explains both paths.
-
 ## What this is
 
 Trackie is a free, hosted instance of [Actual Budget](https://actualbudget.org) -
@@ -41,7 +23,7 @@ a fast, private, open-source budgeting app - offered to anyone in New Zealand. Y
 get your own private budget, kept separate from everyone else's. Optionally, you can
 link your NZ bank accounts so transactions import automatically.
 
-It is the open-source Actual Budget project, with one small New Zealand addition (NZ bank sync via [Akahu](https://akahu.nz)). It is not a fork or a clone or a knock-off. The only changes from the standard app are a small, public, auditable layer described below.
+It is the open-source Actual Budget project. It is not a fork or a clone or a knock-off. The only changes from the standard app are a small, public, auditable layer described below.
 
 ## Why I am hosting this
 
@@ -101,9 +83,6 @@ profiling. If your account is deleted, your email is deleted with it.
 
 - **Your budget is private to you.** Every person gets their own separate budget
   files. No other user can see your data, and the design keeps each account isolated.
-- **We never see your bank login.** If you choose to connect a bank (optional - see
-  below), that happens through Akahu's secure connection. This service never sees or
-  stores your internet-banking username or password.
 - **Optional end-to-end encryption.** Actual lets you put a personal encryption
   password on your budget. If you do, your budget is scrambled on your device before
   it ever reaches the server, so not even the operator can read its contents.
@@ -113,34 +92,6 @@ profiling. If your account is deleted, your email is deleted with it.
   the service small, local, and easier to run safely.
 - **Open and auditable.** The exact code that runs the server is public (see below),
   so anyone can confirm there is no tracking or hidden data collection.
-
-## Connecting a bank (completely optional)
-
-If - and only if - you want transactions to import automatically, you can link your
-NZ bank accounts. This uses [Akahu](https://akahu.nz), New Zealand's open-banking
-platform, which is the same kind of secure connection many NZ fintech apps use.
-
-Here is exactly what happens, and what it does and does not allow:
-
-- **You choose.** You click "Connect with Akahu", log in at Akahu, and pick which
-  accounts to share. You are always in control of which accounts (if any) are linked.
-- **Read-only.** The connection only ever *reads* your account balances and
-  transactions, so they can appear in your budget. **It cannot move money, make
-  payments, or change anything at your bank.** There is no code path in this service
-  that can transfer funds - it only reads.
-- **Your connection is yours alone.** Each person's bank connection is private to
-  their own account. No other user can see your accounts or transactions.
-- **Your bank credentials are never shared with us.** You log in at your bank / Akahu,
-  not here.
-- **You can disconnect any time**, instantly, from the bank-connection page. That
-  stops all future imports and removes the connection.
-
-If you never click "Connect with Akahu", none of this happens, and manual import
-(above) keeps working perfectly.
-
-> **Status:** automatic bank sync is built but **not switched on yet**. It needs Akahu
-> to approve the service's open-banking application before it can go live for users.
-> Until then, everyone uses manual import - which, again, is a great way to budget.
 
 ## If you stop using the service
 
