@@ -1,5 +1,5 @@
 diff --git a/packages/sync-server/src/app.ts b/packages/sync-server/src/app.ts
-index e171d4d..9a4af25 100644
+index e171d4d..9c019fa 100644
 --- a/packages/sync-server/src/app.ts
 +++ b/packages/sync-server/src/app.ts
 @@ -13,6 +13,8 @@ import * as corsApp from './app-cors-proxy';
@@ -27,3 +27,31 @@ index e171d4d..9a4af25 100644
  app.use('/admin', adminApp.handlers);
  app.use('/openid', openidApp.handlers);
  
+@@ -169,7 +173,26 @@ if (isDev) {
+ } else {
+   console.log('Running in production mode - Serving static React app');
+ 
+-  app.use(express.static(config.get('webRoot'), { index: false }));
++  /* Cache policy for the static client. The CDN is purged on every deploy, so
++     the only thing that can break is a browser pinning a stale copy of a
++     stable-URL file that bootstraps the app - it would outlive the purge and
++     leave the client broken. Content-hashed assets carry their hash in the URL
++     (the URL changes with the content) and cosmetic files are kept fresh by the
++     purge, so both are pinned immutably; only the handful of stable-URL
++     bootstrap files below always revalidate. */
++  const revalidate = ['index.html', 'sw.js', 'data-file-index.txt', 'sql-wasm.wasm'];
++  app.use(
++    express.static(config.get('webRoot'), {
++      index: false,
++      setHeaders: (res, filePath) => {
++        const bootstrap = revalidate.some(name => filePath.endsWith('/' + name));
++        res.setHeader(
++          'Cache-Control',
++          bootstrap ? 'no-cache' : 'public, max-age=31536000, immutable',
++        );
++      },
++    }),
++  );
+   app.get('/{*splat}', (req, res) =>
+     res.sendFile('index.html', { root: config.get('webRoot') }),
+   );
