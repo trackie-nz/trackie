@@ -13,16 +13,20 @@ const steps = [
   {
     n: '3',
     title: 'Start budgeting',
-    body: 'Your private budget is ready and waiting. Feet up.',
+    body: 'To get the most out of your budget, follow the steps in',
+    link: {
+      href: 'https://actualbudget.org/docs/getting-started/starting-fresh',
+      label: "the official Getting Started guide.",
+    },
   },
 ];
 ---
 
 <section id="start" class="px-[4px] pt-[88px] pb-[8px]">
-  <div class="max-w-[560px]">
+  <div>
     <h2 class="m-0 text-[34px] font-extrabold tracking-[-0.02em] text-ink">Getting Started</h2>
     <p class="mt-[12px] text-[18px] leading-[1.5] text-muted">
-      About a minute, and no password to invent.
+      About a minute, and no password to invent. Once you've made your account, have a read through <a class="underline underline-offset-2" href="https://actualbudget.org/docs/getting-started/starting-fresh">the official Getting Started guide</a>.
     </p>
   </div>
 
@@ -36,7 +40,22 @@ const steps = [
             </span>
             <h3 class="m-0 text-[20px] font-bold text-ink">{step.title}</h3>
           </div>
-          <p class="mt-[16px] text-[15.5px] leading-[1.6] text-muted">{step.body}</p>
+          <p class="mt-[16px] text-[15.5px] leading-[1.6] text-muted">
+            {step.body}
+            {step.link && (
+              <>
+                {' '}
+                <a
+                  href={step.link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold text-rust underline underline-offset-[3px]"
+                >
+                  {step.link.label}
+                </a>
+              </>
+            )}
+          </p>
         </div>
       ))
     }

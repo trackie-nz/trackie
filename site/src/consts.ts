@@ -8,6 +8,6 @@ export const GET_STARTED_URL = `${APP_URL}/get-started`;
 export const NAV_LINKS: { label: string; href: string }[] = [
     {
         label: 'Docs / Help',
-        href:'https://actualbudget.org/docs/'
+        href:'https://actualbudget.org/docs/budgeting/'
     }
 ];
