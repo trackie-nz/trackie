@@ -18,14 +18,15 @@ Patches apply in alphabetical order. Server-side patches target `packages/sync-s
 client-side patches target `packages/desktop-client` and `packages/loot-core` and only take
 effect in a full client build (not the fast `server.Dockerfile` shortcut).
 
-| Patch | Target | What it does |
-| --- | --- | --- |
-| `app-mounts.patch` | `sync-server/.../app.ts` | Mounts the `/get-started` route and the deny-by-default `trackieAdminGuard` ahead of the `/admin` router. |
-| `branding.patch` | `desktop-client/index.html` + `public/site.webmanifest` | Rebrands the browser tab title and PWA `name`/`short_name` from "Actual" to "Trackie". |
+| Patch | Target | What it does                                                                                                                                                                                                            |
+| --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `app-mounts.patch` | `sync-server/.../app.ts` | Mounts the `/get-started` route and the deny-by-default `trackieAdminGuard` ahead of the `/admin` router.                                                                                                               |
+| `branding.patch` | `desktop-client/index.html` + `public/site.webmanifest` | Rebrands the browser tab title and PWA `name`/`short_name` from "Actual" to "Trackie".                                                                                                                                  |
 | `openid.patch` | `sync-server/.../accounts/openid.ts` | Imports `trackie-identity`, derives the account identity via `deriveOpenIdIdentity` (HMAC of verified email), stores `display_name` empty, and removes the later-login re-write so no IdP name/email is ever persisted. |
-| `prefs-defaults.patch` | `desktop-client/.../prefs/prefsSlice.ts` | Seeds NZ display defaults (DD/MM/YYYY dates, Monday first day of week) at the single `loadPrefs` injection point; a trailing spread lets any saved value win. Display-only. |
-| `settings-page.patch` | `desktop-client/.../settings/index.tsx` | Removes the Authentication-method section (#3) and the update-notification opt-in checkbox (#8), and rebrands the About tagline to "Trackie" (#6). Keeps the Release Notes link. |
-| `update-notify-default.patch` | `loot-core/.../preferences/app.ts` | Defaults `notifyWhenUpdateIsAvailable` off (belt-and-braces with removing the opt-in), so the "New version available" link stays hidden. |
+| `prefs-defaults.patch` | `desktop-client/.../prefs/prefsSlice.ts` | Seeds NZ display defaults (DD/MM/YYYY dates, Monday first day of week) at the single `loadPrefs` injection point; a trailing spread lets any saved value win. Display-only.                                             |
+| `settings-page.patch` | `desktop-client/.../settings/index.tsx` | Removes the Authentication-method section (#3) and the update-notification opt-in checkbox (#8), and rebrands the About tagline to "Trackie" (#6). Keeps the Release Notes link.                                        |
+| `trackie-theme.patch` | `desktop-client/.../style/theme.tsx` | Change the default theme.                                                                                                                                                                                               |
+| `update-notify-default.patch` | `loot-core/.../preferences/app.ts` | Defaults `notifyWhenUpdateIsAvailable` off (belt-and-braces with removing the opt-in), so the "New version available" link stays hidden.                                                                                |
 
 ## Regenerating a patch (after an upstream bump, or to edit one)
 

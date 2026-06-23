@@ -1,0 +1,21 @@
+diff --git a/packages/desktop-client/src/style/theme.tsx b/packages/desktop-client/src/style/theme.tsx
+index 9fdb9fb..84167d4 100644
+--- a/packages/desktop-client/src/style/theme.tsx
++++ b/packages/desktop-client/src/style/theme.tsx
+@@ -14,6 +14,7 @@ import {
+   validateThemeCss,
+ } from './customThemes';
+ import type { BaseTheme } from './customThemes';
++import { TRACKIE_THEME_CSS } from './trackieTheme';
+ 
+ const themes = {
+   light: { name: 'Light', colors: lightThemeCss },
+@@ -226,7 +227,10 @@ export function CustomThemeStyle() {
+     }
+ 
+     const overrideLayer = safeValidate(
+-      customCssOverride,
++      customCssOverride ?? TRACKIE_THEME_CSS,
+       'Invalid custom CSS override',
+     );
+ 
