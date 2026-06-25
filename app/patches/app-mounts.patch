@@ -1,8 +1,8 @@
 diff --git a/packages/sync-server/src/app.ts b/packages/sync-server/src/app.ts
-index e171d4d..9c019fa 100644
+index 276059e..eaf6882 100644
 --- a/packages/sync-server/src/app.ts
 +++ b/packages/sync-server/src/app.ts
-@@ -13,6 +13,8 @@ import * as corsApp from './app-cors-proxy';
+@@ -14,6 +14,8 @@ import * as corsApp from './app-cors-proxy';
  import * as enableBankingApp from './app-enablebanking/app-enablebanking';
  import * as goCardlessApp from './app-gocardless/app-gocardless';
  import * as openidApp from './app-openid';
@@ -11,15 +11,15 @@ index e171d4d..9c019fa 100644
  import * as pluggai from './app-pluggyai/app-pluggyai';
  import * as secretApp from './app-secrets';
  import * as simpleFinApp from './app-simplefin/app-simplefin';
-@@ -58,6 +60,7 @@ app.use(
+@@ -59,6 +61,7 @@ app.use(
  app.use('/sync', syncApp.handlers);
  app.use('/account', accountApp.handlers);
  app.use('/gocardless', goCardlessApp.handlers);
 +app.use('/get-started', getStartedApp.handlers);
  app.use('/simplefin', simpleFinApp.handlers);
  app.use('/pluggyai', pluggai.handlers);
- app.use('/enablebanking', enableBankingApp.handlers);
-@@ -67,6 +70,7 @@ if (config.get('corsProxy.enabled')) {
+ app.use('/akahu', akahuApp.handlers);
+@@ -69,6 +72,7 @@ if (config.get('corsProxy.enabled')) {
    app.use('/cors-proxy', corsApp.handlers);
  }
  
@@ -27,7 +27,7 @@ index e171d4d..9c019fa 100644
  app.use('/admin', adminApp.handlers);
  app.use('/openid', openidApp.handlers);
  
-@@ -169,7 +173,26 @@ if (isDev) {
+@@ -171,7 +175,26 @@ if (isDev) {
  } else {
    console.log('Running in production mode - Serving static React app');
  
