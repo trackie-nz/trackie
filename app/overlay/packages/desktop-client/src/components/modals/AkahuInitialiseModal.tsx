@@ -152,28 +152,37 @@ export const AkahuInitialiseModal = ({
     }
 
     setIsLoading(true);
-    /* The server validates and stores both tokens for this user; cast the
-       loosely-typed send() result so we can read its status/error fields. */
-    const result = (await send('akahu-set-tokens', {
-      appToken: appToken.trim(),
-      userToken: userToken.trim(),
-    })) as unknown as
-      | { status?: string; error?: string; data?: { error?: string } }
-      | undefined;
-    setIsLoading(false);
+    /* The server stores both tokens for this user and replies { status: 'ok' }.
+       loot-core's post() helper unwraps that to its (empty) `data`, so a
+       successful save resolves send() with no useful body; a non-ok response
+       makes post() throw, which send() (no catchErrors) surfaces as a rejection.
+       So: a clean resolve is success, a rejection (or an explicit { error }) is
+       failure - never key off a `status` field, which never reaches us here. */
+    try {
+      const result = (await send('akahu-set-tokens', {
+        appToken: appToken.trim(),
+        userToken: userToken.trim(),
+      })) as unknown as { error?: string } | undefined;
+      setIsLoading(false);
 
-    if (result?.status === 'ok') {
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
       setError(null);
       onSuccess();
       close();
-      return;
+    } catch (err) {
+      setIsLoading(false);
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t(
+              'Could not save your Akahu tokens. Please check them and try again.',
+            ),
+      );
     }
-
-    setError(
-      result?.data?.error ??
-        result?.error ??
-        t('Could not save your Akahu tokens. Please check them and try again.'),
-    );
   };
 
   return (

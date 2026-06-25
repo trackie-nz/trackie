@@ -1,4 +1,5 @@
 .env
+compose.override.yml
 data/
 .idea
 .DS_Store

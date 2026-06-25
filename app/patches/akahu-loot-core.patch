@@ -20,10 +20,20 @@ index a3ac674..b7dc653 100644
    'gocardless-get-banks': typeof getGoCardlessBanks;
    'gocardless-create-web-token': typeof createGoCardlessWebToken;
    'accounts-bank-sync': typeof accountsBankSync;
-@@ -1000,6 +1002,54 @@ async function akahuAccounts() {
+@@ -1000,6 +1002,78 @@ async function akahuAccounts() {
    }
  }
  
++/*
++  post()/del() resolve to the server's response `data` (empty for our { status:
++  'ok' } replies, i.e. undefined) on success and THROW a PostError on any non-ok
++  response. The desktop-client reads these results directly - the modal checks
++  `result.error` and useBuiltInBankSyncProviders' ensureSuccessResponse reads
++  `response.error_code`/`response.error` - so a bare undefined makes the reset
++  path crash and an empty success looks like a failure. Normalise both handlers
++  to a stable shape: { status: 'ok' } on success (no error_code/error, so it
++  passes every client check) or { error } carrying the failure message.
++*/
 +async function akahuSetTokens({
 +  appToken,
 +  userToken,
@@ -42,13 +52,20 @@ index a3ac674..b7dc653 100644
 +    throw new Error('Failed to get server config.');
 +  }
 +
-+  return post(
-+    serverConfig.AKAHU_SERVER + '/tokens',
-+    { appToken, userToken },
-+    {
-+      'X-ACTUAL-TOKEN': sessionToken,
-+    },
-+  );
++  try {
++    await post(
++      serverConfig.AKAHU_SERVER + '/tokens',
++      { appToken, userToken },
++      {
++        'X-ACTUAL-TOKEN': sessionToken,
++      },
++    );
++    return { status: 'ok' };
++  } catch (error) {
++    return {
++      error: error instanceof Error ? error.message : 'Could not save tokens',
++    };
++  }
 +}
 +
 +async function akahuClearTokens() {
@@ -63,13 +80,20 @@ index a3ac674..b7dc653 100644
 +    throw new Error('Failed to get server config.');
 +  }
 +
-+  return del(
-+    serverConfig.AKAHU_SERVER + '/tokens',
-+    {},
-+    {
-+      'X-ACTUAL-TOKEN': sessionToken,
-+    },
-+  );
++  try {
++    await del(
++      serverConfig.AKAHU_SERVER + '/tokens',
++      {},
++      {
++        'X-ACTUAL-TOKEN': sessionToken,
++      },
++    );
++    return { status: 'ok' };
++  } catch (error) {
++    return {
++      error: error instanceof Error ? error.message : 'Could not disconnect',
++    };
++  }
 +}
 +
  async function enableBankingStatus() {
