@@ -30,5 +30,11 @@ services:
       # --- Identity: HMAC key for user_name. Generate once; NEVER rotate
       #     (rotating orphans every existing user from their budget). ---
       ACTUAL_IDENTITY_SECRET: ${ACTUAL_IDENTITY_SECRET}
-      # --- Akahu NZ bank sync is deferred (dormant). To switch it on, follow
-      #     akahu-overlay/ENABLE.md, which re-adds ACTUAL_AKAHU_APP_* here. ---
+      # --- Akahu NZ bank sync: each user pastes their own my.akahu.nz personal
+      #     tokens, encrypted at rest with this key. Distinct from the identity
+      #     secret. If rotated/lost, stored tokens become undecryptable and users
+      #     simply re-paste (no budget data is lost). ---
+      ACTUAL_AKAHU_TOKEN_SECRET: ${ACTUAL_AKAHU_TOKEN_SECRET}
+      # --- Server timezone: transaction dates are bucketed in local time, so pin
+      #     it to NZ so a late-evening transaction lands on the right NZ day. ---
+      TZ: Pacific/Auckland
