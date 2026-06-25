@@ -40,9 +40,11 @@ type AkahuInitialiseModalProps = Extract<
 const APP_TOKEN_PREFIX = 'app_token_';
 const USER_TOKEN_PREFIX = 'user_token_';
 
-/* The my.akahu.nz steps the user completes before they have tokens to paste.
-   Screenshots are a pending asset task (they need a live Akahu account), so each
-   step shows a labelled placeholder until the real captures are dropped in. */
+/**
+ * The my.akahu.nz steps the user completes before they have tokens to paste.
+ * Screenshots are a pending asset task (they need a live Akahu account), so each
+ * step shows a labelled placeholder until the real captures are dropped in.
+ */
 type GuideStep = { title: string; body: React.ReactNode; screenshot: string };
 
 function ScreenshotPlaceholder({ label }: { label: string }) {

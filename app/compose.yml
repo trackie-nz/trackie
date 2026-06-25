@@ -1,5 +1,5 @@
-# Self-hosted NZ Actual Budget (privacy sign-in + /get-started deep link).
-# Akahu bank sync is deferred/dormant - see akahu-overlay/ENABLE.md.
+# Self-hosted NZ Actual Budget (privacy sign-in + /get-started deep link +
+# per-user NZ bank sync via Akahu).
 #
 # Then:  cp .env.example .env  (fill in OIDC creds)
 #        docker compose pull && docker compose up -d   (or podman-compose)

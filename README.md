@@ -9,7 +9,7 @@ No cost, no ads, no data harvesting, New Zealand only.
 ## About
 
 - **[About this service](docs/about-this-service.md)** - what Trackie is, why it is free, how your data is kept safe.
-- **[Security & privacy](docs/security-and-privacy.md)** - the technical detail: identity, per-user isolation, end-to-end encryption, and the hardened bank-connect flow.
+- **[Security & privacy](docs/security-and-privacy.md)** - the technical detail: identity, per-user isolation, end-to-end encryption, and the per-user, read-only, encrypted NZ bank sync.
 
 ## What you get
 

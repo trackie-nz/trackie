@@ -24,17 +24,16 @@ export type UserTokens = { appToken: string; userToken: string };
 const APP_TOKEN_PREFIX = 'app_token_';
 const USER_TOKEN_PREFIX = 'user_token_';
 
-/*
-  Encryption of stored Akahu tokens (at rest, in account.sqlite).
-
-  Each user's tokens grant read access to their bank data, so they are never
-  stored in the clear. Tokens are sealed with AES-256-GCM under a key derived
-  (HKDF-SHA256) from ACTUAL_AKAHU_TOKEN_SECRET, which lives only in the server
-  environment - so a leaked database file or backup does not expose any user's
-  bank tokens on its own. If the secret is rotated or lost, stored tokens become
-  undecryptable and are treated as disconnected, so the user simply re-pastes.
-*/
-
+/**
+ * Derive the AES-256-GCM key that seals stored Akahu tokens at rest.
+ *
+ * Each user's tokens grant read access to their bank data, so they are never
+ * stored in the clear. Tokens are sealed under a key derived (HKDF-SHA256) from
+ * ACTUAL_AKAHU_TOKEN_SECRET, which lives only in the server environment - so a
+ * leaked database file or backup does not expose any user's bank tokens on its
+ * own. If the secret is rotated or lost, stored tokens become undecryptable and
+ * are treated as disconnected, so the user simply re-pastes.
+ */
 function getTokenEncryptionKey(): Buffer {
   const secret = process.env.ACTUAL_AKAHU_TOKEN_SECRET;
   if (!secret) {
@@ -142,17 +141,16 @@ function validateTokens(appToken: unknown, userToken: unknown): string | null {
   return null;
 }
 
-/*
-  Refresh policy: at most once per 20h per account, on-demand only.
-
-  Sync is driven by the user's own client opening/syncing their budget (no
-  background poller). Before reading transactions we ask Akahu to refresh the
-  account, but only if its data is older than 20h - the "polite" cap. An active
-  user gets fresh data at most daily; a user away two weeks is >20h stale on
-  their next login, so their first sync refreshes immediately. The mutex
-  serialises refreshes server-wide so concurrent budgets don't stampede Akahu.
-*/
-
+/**
+ * Refresh cap: at most once per 20h per account, on-demand only.
+ *
+ * Sync is driven by the user's own client opening/syncing their budget (no
+ * background poller). Before reading transactions we ask Akahu to refresh the
+ * account, but only if its data is older than this - the "polite" cap. An active
+ * user gets fresh data at most daily; a user away two weeks is >20h stale on
+ * their next login, so their first sync refreshes immediately. The mutex
+ * serialises refreshes server-wide so concurrent budgets don't stampede Akahu.
+ */
 const AKAHU_TRANSACTION_REFRESH_INTERVAL_MS = 20 * 60 * 60 * 1000; // 20 hours
 
 /** Minimal promise-chain mutex (#util/mutex does not exist at our base tag). */

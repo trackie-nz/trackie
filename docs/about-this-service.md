@@ -8,13 +8,21 @@ information is kept safe.
 
 - [You do not need to connect a bank](#you-do-not-need-to-connect-a-bank)
 - [What this is](#what-this-is)
-- [Why we are doing this](#why-we-are-doing-this)
+- [Why I am hosting this](#why-i-am-hosting-this)
 - [Who runs this](#who-runs-this)
 - [How you sign up](#how-you-sign-up)
 - [How your data is kept safe](#how-your-data-is-kept-safe)
 - [Connecting a bank (completely optional)](#connecting-a-bank-completely-optional)
 - [If you stop using the service](#if-you-stop-using-the-service)
 - [You can check the code yourself](#you-can-check-the-code-yourself)
+
+## You do not need to connect a bank
+
+Trackie works completely on its own. You can run your whole budget by entering
+transactions yourself or importing a statement file from your bank - no bank
+connection required, ever. Connecting a bank just saves you the typing by importing
+transactions automatically. It is entirely optional, stays off until you choose it,
+and you can disconnect at any time.
 
 ## What this is
 
@@ -92,6 +100,24 @@ profiling. If your account is deleted, your email is deleted with it.
   the service small, local, and easier to run safely.
 - **Open and auditable.** The exact code that runs the server is public (see below),
   so anyone can confirm there is no tracking or hidden data collection.
+
+## Connecting a bank (completely optional)
+
+If you want your NZ transactions to import automatically, Trackie connects to your
+bank through [Akahu](https://www.akahu.nz/), New Zealand's open-banking service.
+
+- **You use your own Akahu account.** Rather than Trackie holding one big connection
+  to everyone's banks, you create your own free account at
+  [my.akahu.nz](https://my.akahu.nz), connect your bank there, and paste two personal
+  access codes into Trackie. A short in-app guide walks you through every step.
+- **It is read-only.** Trackie can only *read* your transactions and balances to bring
+  them into your budget. It can never move money or make a payment.
+- **Your access codes are encrypted.** Trackie stores your two codes scrambled, not in
+  plain text. 
+- **It updates politely.** Trackie refreshes a connected account at most once a day,
+  and only while you are actually using your budget - never quietly in the background.
+- **You stay in control.** Disconnect at any time from the bank-sync settings and your
+  stored codes are deleted; removing your account deletes them too.
 
 ## If you stop using the service
 
