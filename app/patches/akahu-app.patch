@@ -1,0 +1,68 @@
+diff --git a/packages/sync-server/src/app-akahu/app-akahu.ts b/packages/sync-server/src/app-akahu/app-akahu.ts
+index ecf662f..86a4f3e 100644
+--- a/packages/sync-server/src/app-akahu/app-akahu.ts
++++ b/packages/sync-server/src/app-akahu/app-akahu.ts
+@@ -12,7 +12,11 @@ import { formatISO } from 'date-fns';
+ import express from 'express';
+ 
+ import { handleError } from '#app-gocardless/util/handle-error';
+-import { SecretName, secretsService } from '#services/secrets-service';
++import {
++  getRefreshedAccount,
++  getUserTokens,
++  registerTokenRoutes,
++} from './trackie-akahu.js';
+ import {
+   requestLoggerMiddleware,
+   validateSessionMiddleware,
+@@ -48,11 +52,15 @@ app.use(express.json());
+ app.use(requestLoggerMiddleware);
+ app.use(validateSessionMiddleware);
+ 
++// Trackie: per-user token set/clear routes (see trackie-akahu.ts).
++registerTokenRoutes(app);
++
+ app.post(
+   '/status',
+   handleError(async (req, res) => {
+-    const userToken = secretsService.get(SecretName.akahu_userToken);
+-    const appToken = secretsService.get(SecretName.akahu_appToken);
++    const tokens = getUserTokens(res.locals.user_id);
++    const userToken = tokens?.userToken ?? null;
++    const appToken = tokens?.appToken ?? null;
+ 
+     const configured = userToken != null && appToken != null;
+ 
+@@ -68,8 +76,9 @@ app.post(
+ app.post(
+   '/accounts',
+   handleError(async (req, res) => {
+-    const userToken = secretsService.get(SecretName.akahu_userToken);
+-    const appToken = secretsService.get(SecretName.akahu_appToken);
++    const tokens = getUserTokens(res.locals.user_id);
++    const userToken = tokens?.userToken ?? null;
++    const appToken = tokens?.appToken ?? null;
+ 
+     if (!userToken || !appToken) {
+       res.send({
+@@ -119,8 +128,9 @@ app.post(
+       });
+     }
+ 
+-    const userToken = secretsService.get(SecretName.akahu_userToken);
+-    const appToken = secretsService.get(SecretName.akahu_appToken);
++    const tokens = getUserTokens(res.locals.user_id);
++    const userToken = tokens?.userToken ?? null;
++    const appToken = tokens?.appToken ?? null;
+ 
+     if (!userToken || !appToken) {
+       res.send({
+@@ -135,7 +145,7 @@ app.post(
+     try {
+       const akahu = new AkahuClient({ appToken });
+ 
+-      const account = await akahu.accounts.get(userToken, accountId);
++      const account = await getRefreshedAccount(akahu, userToken, accountId);
+       if (!account) {
+         return res.send({
+           status: 'error',

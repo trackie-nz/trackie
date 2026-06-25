@@ -31,13 +31,16 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 # 24 files apply cleanly; exactly one hunk rejects - the single `akahu-accounts`
 # method registration in loot-core accounts/app.ts, because the surrounding
 # simplefin/gocardless lines drifted after the tag. Our zero-fuzz
-# patches/akahu-6041-appmethod.patch (applied in step 2) covers that one line.
-# Any OTHER reject means upstream drifted further, so we fail loudly here and the
-# backport must be re-verified against the new base.
+# patches/akahu-loot-core.patch (applied in step 2) re-adds that one line, along
+# with the per-user akahu-set-tokens / akahu-clear-tokens handlers (one patch per
+# file). Any OTHER reject means upstream drifted further, so we fail loudly here
+# and the backport must be re-verified against the new base.
 #
 # Retire on release: when a tagged release (27.x) ships #6041, bump ACTUAL_VERSION
-# to it and delete this step plus patches/akahu-6041-appmethod.patch - the per-user
-# overlay then targets the released Akahu code directly.
+# to it and delete this step; then regenerate patches/akahu-loot-core.patch against
+# the release (its akahu-accounts re-add hunk becomes redundant and will fail
+# loudly, leaving just our two per-user handlers) - the per-user overlay then
+# targets the released Akahu code directly.
 AKAHU_PR_DIFF_URL="https://github.com/actualbudget/actual/commit/f1c0960fee7b470d4def336dbba6009d43fbd115.diff"
 AKAHU_EXPECTED_REJECT="packages/loot-core/src/server/accounts/app.ts.rej"
 
@@ -56,7 +59,7 @@ if [ "$rejects" != "$AKAHU_EXPECTED_REJECT" ]; then
   echo "[overlay] upstream PR #6041 drifted vs this base - re-verify the backport."
   exit 1
 fi
-# The appmethod patch (step 2) re-adds the rejected line; drop the stray .rej so
+# The loot-core patch (step 2) re-adds the rejected line; drop the stray .rej so
 # it does not linger in the build context.
 rm -f "$TARGET/$AKAHU_EXPECTED_REJECT"
 

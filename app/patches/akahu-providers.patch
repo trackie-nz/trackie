@@ -1,0 +1,39 @@
+diff --git a/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts b/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
+index 0e21190..a255b59 100644
+--- a/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
++++ b/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
+@@ -325,19 +325,11 @@ export function useBuiltInBankSyncProviders({
+ 
+   const onAkahuReset = useCallback(async () => {
+     try {
++      /* Per-user model: one server call drops this user's stored tokens
++         (upstream cleared two admin-only global secrets here instead). */
+       await ensureSuccessResponse(
+-        await send('secret-set', {
+-          name: 'akahu_userToken',
+-          value: null,
+-        }),
+-        'Failed to clear Akahu user token',
+-      );
+-      await ensureSuccessResponse(
+-        await send('secret-set', {
+-          name: 'akahu_appToken',
+-          value: null,
+-        }),
+-        'Failed to clear Akahu app token',
++        await send('akahu-clear-tokens'),
++        'Failed to disconnect Akahu',
+       );
+       setIsAkahuSetupComplete(false);
+     } catch (error) {
+@@ -656,7 +648,9 @@ export function useBuiltInBankSyncProviders({
+           'Link a New Zealand bank account to automatically download transactions.',
+         ),
+         isConfigured: configuredProviders.akahu,
+-        canConfigure: canConfigureProviders,
++        /* Each user manages their own personal Akahu token, so any signed-in
++           user can configure this card (other providers stay admin-gated). */
++        canConfigure: true,
+         isLoading: loadingAkahuAccounts,
+         onConfigure: onAkahuInit,
+         onLink: onConnectAkahu,

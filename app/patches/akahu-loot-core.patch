@@ -1,0 +1,87 @@
+diff --git a/packages/loot-core/src/server/accounts/app.ts b/packages/loot-core/src/server/accounts/app.ts
+index a3ac674..b7dc653 100644
+--- a/packages/loot-core/src/server/accounts/app.ts
++++ b/packages/loot-core/src/server/accounts/app.ts
+@@ -15,7 +15,7 @@ import {
+ } from '#server/errors';
+ import { app as mainApp } from '#server/main-app';
+ import { mutator } from '#server/mutators';
+-import { get, post } from '#server/post';
++import { del, get, post } from '#server/post';
+ import { getServer } from '#server/server-config';
+ import { batchMessages } from '#server/sync';
+ import { undoable, withUndo } from '#server/undo';
+@@ -81,6 +81,8 @@ export type AccountHandlers = {
+   'simplefin-accounts': typeof simpleFinAccounts;
+   'pluggyai-accounts': typeof pluggyAiAccounts;
+   'akahu-accounts': typeof akahuAccounts;
++  'akahu-set-tokens': typeof akahuSetTokens;
++  'akahu-clear-tokens': typeof akahuClearTokens;
+   'gocardless-get-banks': typeof getGoCardlessBanks;
+   'gocardless-create-web-token': typeof createGoCardlessWebToken;
+   'accounts-bank-sync': typeof accountsBankSync;
+@@ -1000,6 +1002,54 @@ async function akahuAccounts() {
+   }
+ }
+ 
++async function akahuSetTokens({
++  appToken,
++  userToken,
++}: {
++  appToken: string;
++  userToken: string;
++}) {
++  const sessionToken = await asyncStorage.getItem('user-token');
++
++  if (!sessionToken) {
++    return { error: 'unauthorized' };
++  }
++
++  const serverConfig = getServer();
++  if (!serverConfig) {
++    throw new Error('Failed to get server config.');
++  }
++
++  return post(
++    serverConfig.AKAHU_SERVER + '/tokens',
++    { appToken, userToken },
++    {
++      'X-ACTUAL-TOKEN': sessionToken,
++    },
++  );
++}
++
++async function akahuClearTokens() {
++  const sessionToken = await asyncStorage.getItem('user-token');
++
++  if (!sessionToken) {
++    return { error: 'unauthorized' };
++  }
++
++  const serverConfig = getServer();
++  if (!serverConfig) {
++    throw new Error('Failed to get server config.');
++  }
++
++  return del(
++    serverConfig.AKAHU_SERVER + '/tokens',
++    {},
++    {
++      'X-ACTUAL-TOKEN': sessionToken,
++    },
++  );
++}
++
+ async function enableBankingStatus() {
+   const userToken = await asyncStorage.getItem('user-token');
+ 
+@@ -1699,6 +1749,9 @@ app.method('enablebanking-poll-auth-stop', stopEnableBankingPollAuth);
+ app.method('enablebanking-configure', enableBankingConfigure);
+ app.method('simplefin-accounts', simpleFinAccounts);
+ app.method('pluggyai-accounts', pluggyAiAccounts);
++app.method('akahu-accounts', akahuAccounts);
++app.method('akahu-set-tokens', akahuSetTokens);
++app.method('akahu-clear-tokens', akahuClearTokens);
+ app.method('gocardless-get-banks', getGoCardlessBanks);
+ app.method('gocardless-create-web-token', createGoCardlessWebToken);
+ app.method('accounts-bank-sync', accountsBankSync);

@@ -1,0 +1,13 @@
+diff --git a/packages/desktop-client/src/hooks/useFeatureFlag.ts b/packages/desktop-client/src/hooks/useFeatureFlag.ts
+index e96becc..5537252 100644
+--- a/packages/desktop-client/src/hooks/useFeatureFlag.ts
++++ b/packages/desktop-client/src/hooks/useFeatureFlag.ts
+@@ -15,7 +15,7 @@ const DEFAULT_FEATURE_FLAG_STATE: Record<FeatureFlag, boolean> = {
+   payeeLocations: false,
+   enableBanking: false,
+   sankeyReport: false,
+-  akahuBankSync: false,
++  akahuBankSync: true,
+ };
+ 
+ export function useFeatureFlag(name: FeatureFlag): boolean {
