@@ -7,7 +7,10 @@ import { getAccountDb } from '../src/account-db';
   replaces upstream's single global secretsService tokens, so every user has
   their own private, read-only bank connection.
 
-  ON DELETE CASCADE: deleting a user removes their connection row with them.
+  The FK declares ON DELETE CASCADE to document intent, but the sync-server opens
+  SQLite without `PRAGMA foreign_keys = ON`, so the cascade does NOT fire at
+  runtime. Deletion is therefore handled explicitly in user-service deleteUser
+  (patches/akahu-user-delete.patch) - keep the two in step.
 */
 
 export const up = async function () {

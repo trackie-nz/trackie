@@ -1,0 +1,20 @@
+diff --git a/packages/sync-server/src/services/user-service.ts b/packages/sync-server/src/services/user-service.ts
+index 05db991..e392a21 100644
+--- a/packages/sync-server/src/services/user-service.ts
++++ b/packages/sync-server/src/services/user-service.ts
+@@ -114,6 +114,15 @@ export function deleteUser(userId) {
+     );
+     if (changes > 0) {
+       getAccountDb().mutate('DELETE FROM sessions WHERE user_id = ?', [userId]);
++      /* Trackie: drop the user's per-user Akahu connection. The
++         akahu_connections FK declares ON DELETE CASCADE, but the sync-server
++         opens SQLite without `PRAGMA foreign_keys = ON`, so the cascade never
++         fires; without this, a deleted user's encrypted tokens linger and a
++         re-added user (deterministic HMAC user_id) would silently inherit
++         them. Safe no-op when the user had no connection. */
++      getAccountDb().mutate('DELETE FROM akahu_connections WHERE user_id = ?', [
++        userId,
++      ]);
+     }
+     return changes;
+   });
