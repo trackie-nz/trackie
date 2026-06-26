@@ -1,5 +1,5 @@
 diff --git a/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts b/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
-index d99ce86..0f29c53 100644
+index d99ce86..95c1cc0 100644
 --- a/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
 +++ b/packages/desktop-client/src/components/banksync/useBuiltInBankSyncProviders.ts
 @@ -325,19 +325,11 @@ export function useBuiltInBankSyncProviders({
@@ -47,7 +47,22 @@ index d99ce86..0f29c53 100644
          isLoading: loadingAkahuAccounts,
          onConfigure: onAkahuInit,
          onLink: onConnectAkahu,
-@@ -712,7 +708,10 @@ export function useBuiltInBankSyncProviders({
+@@ -680,7 +676,13 @@ export function useBuiltInBankSyncProviders({
+       });
+     }
+ 
+-    return baseProviders;
++    /* Hide providers the signed-in user can neither configure nor link: for a
++       non-admin in multi-user mode that leaves just Akahu (self-service) plus
++       any provider an admin has already configured, so the admin-only ones
++       don't clutter the page or trigger the "contact an Admin" warning. */
++    return baseProviders.filter(
++      provider => provider.canConfigure || provider.isConfigured,
++    );
+   }, [
+     canConfigureProviders,
+     configuredProviders.enableBanking,
+@@ -712,7 +714,10 @@ export function useBuiltInBankSyncProviders({
    ]);
  
    const providersNeedingConfiguration = providers.filter(
