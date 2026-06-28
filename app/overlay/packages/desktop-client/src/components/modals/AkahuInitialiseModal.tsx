@@ -20,16 +20,11 @@ import { FormField, FormLabel } from '#components/forms';
 import type { Modal as ModalType } from '#modals/modalsSlice';
 
 /*
-  TRACKIE wizard replacing upstream's single-screen Akahu token form.
-
-  The per-user model (issue: per-user personal tokens) means every NZ user makes
-  their own my.akahu.nz developer account and pastes their own App ID + User
-  Access tokens, rather than an admin setting one global pair. That journey has a
-  few unavoidable steps on Akahu's side, so this walks the user through them and
-  then submits both tokens to akahu-set-tokens (which stores them per user,
-  encrypted). It deliberately does NOT import upstream's getSecretsError helper
-  (master-only, absent from our base tag); errors come straight from the
-  akahu-set-tokens response instead.
+  TRACKIE wizard replacing upstream's single-screen Akahu token form. Each NZ
+  user pastes their own my.akahu.nz personal tokens (stored per user, encrypted)
+  rather than an admin setting one global pair, so this walks them through Akahu's
+  setup steps. Errors come from the akahu-set-tokens response, not upstream's
+  getSecretsError helper (master-only, absent from our base tag).
 */
 
 type AkahuInitialiseModalProps = Extract<
@@ -152,12 +147,9 @@ export const AkahuInitialiseModal = ({
     }
 
     setIsLoading(true);
-    /* The server stores both tokens for this user and replies { status: 'ok' }.
-       loot-core's post() helper unwraps that to its (empty) `data`, so a
-       successful save resolves send() with no useful body; a non-ok response
-       makes post() throw, which send() (no catchErrors) surfaces as a rejection.
-       So: a clean resolve is success, a rejection (or an explicit { error }) is
-       failure - never key off a `status` field, which never reaches us here. */
+    /* send() resolves with empty data on success and rejects on a non-ok
+       response, so treat a clean resolve as success - the `status` field never
+       reaches us here. */
     try {
       const result = (await send('akahu-set-tokens', {
         appToken: appToken.trim(),

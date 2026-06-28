@@ -84,8 +84,6 @@ function decryptToken(stored: string): string {
   ]).toString('utf8');
 }
 
-// Per-user token storage (akahu_connections table)
-
 /** Decrypt and return the caller's stored Akahu tokens, or null if not connected. */
 export function getUserTokens(userId: string): UserTokens | null {
   const row = getAccountDb().first(
@@ -214,7 +212,6 @@ export function getRefreshedAccount(
  * session and derive the user from `res.locals.user_id`, never from client input.
  */
 export function registerTokenRoutes(app: Express): void {
-  // POST /tokens - store the caller's pasted my.akahu.nz personal tokens.
   app.post(
     '/tokens',
     handleError(async (req, res) => {
@@ -231,7 +228,6 @@ export function registerTokenRoutes(app: Express): void {
     }),
   );
 
-  // DELETE /tokens - disconnect the caller (drops their stored tokens).
   app.delete(
     '/tokens',
     handleError(async (_req, res) => {
