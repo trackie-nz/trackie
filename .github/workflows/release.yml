@@ -15,7 +15,9 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'v*.*.*'
+      # Release tags encode both version axes: <upstream-base>-trackie.<overlay-rev>,
+      # e.g. 26.6.0-trackie.3. The base must match ACTUAL_VERSION (enforced below).
+      - '*-trackie.*'
 
 env:
   # Pinned upstream release we overlay onto - keep in sync with ci.yml.
@@ -85,16 +87,30 @@ jobs:
           cp "$GITHUB_WORKSPACE/app/entrypoint.sh" ./entrypoint.sh
           rm -f ./.dockerignore
 
-      - name: Resolve lowercase image name
+      - name: Resolve image name and tags
         id: image
-        run: echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          # Moving convenience pointers, always applied.
+          tags="-t ${ref}:${ACTUAL_VERSION} -t ${ref}:latest"
+          # On a tag push, add the immutable per-release tag (the git tag itself).
+          # workflow_dispatch runs from a branch and only refreshes the moving tags.
+          if [ "$REF_TYPE" = "tag" ]; then
+            case "$REF_NAME" in
+              "${ACTUAL_VERSION}-trackie."*) ;;
+              *) echo "::error::Tag '$REF_NAME' must be '${ACTUAL_VERSION}-trackie.N' (ACTUAL_VERSION=${ACTUAL_VERSION}). Bump ACTUAL_VERSION or fix the tag."; exit 1 ;;
+            esac
+            tags="$tags -t ${ref}:${REF_NAME}"
+            echo "immutable=${ref}:${REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
 
       - name: Build release image (no compile - copies prebuilt artifacts)
-        run: |
-          docker build -f app/release.Dockerfile \
-            -t "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}" \
-            -t "${{ steps.image.outputs.ref }}:latest" \
-            actual
+        run: docker build -f app/release.Dockerfile ${{ steps.image.outputs.tags }} actual
 
       - name: Boot + HTTP smoke (before any push)
         run: |
@@ -122,12 +138,16 @@ jobs:
 
       - name: Push image to ghcr.io
         id: push
+        env:
+          IMMUTABLE: ${{ steps.image.outputs.immutable }}
         run: |
           docker push "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}"
           docker push "${{ steps.image.outputs.ref }}:latest"
+          [ -n "$IMMUTABLE" ] && docker push "$IMMUTABLE"
           digest=$(docker inspect --format='{{index .RepoDigests 0}}' \
             "${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}" | cut -d@ -f2)
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "Released: ${IMMUTABLE:-${{ steps.image.outputs.ref }}:${ACTUAL_VERSION}} @ $digest" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v4
