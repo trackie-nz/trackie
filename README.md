@@ -22,7 +22,7 @@ No cost, no ads, no data harvesting, New Zealand only.
 
 ## Why this repository exists
 
-This is the *actual code* that runs trackie.nz, published in the open so anyone can verify exactly what happens to their financial data. Trackie is standard Actual Budget plus a small, auditable NZ layer.
+This is the *actual code* that runs trackie.nz, published in the open so anyone can verify exactly what happens to their financial data. Trackie is standard Actual Budget plus [a small, auditable NZ layer](app/patches/README.md).
 
 ## Acknowledgements
 

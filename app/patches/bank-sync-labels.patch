@@ -1,0 +1,27 @@
+diff --git a/packages/desktop-client/src/components/modals/SelectLinkedAccountsModal.tsx b/packages/desktop-client/src/components/modals/SelectLinkedAccountsModal.tsx
+index 929778c..62f017b 100644
+--- a/packages/desktop-client/src/components/modals/SelectLinkedAccountsModal.tsx
++++ b/packages/desktop-client/src/components/modals/SelectLinkedAccountsModal.tsx
+@@ -454,7 +454,7 @@ export function SelectLinkedAccountsModal({
+                 <Cell value={t('Institution to Sync')} width={150} />
+                 <Cell value={t('Bank Account To Sync')} width={150} />
+                 <Cell value={t('Balance')} width={120} />
+-                <Cell value={t('Account in Actual')} width="flex" />
++                <Cell value={t('Account in Trackie')} width="flex" />
+                 <Cell value={t('Starting Date')} width={120} />
+                 <Cell value={t('Starting Balance')} width={120} />
+                 <Cell value={t('Actions')} width={150} textAlign="center" />
+@@ -696,8 +696,12 @@ function TableRow({
+             }}
+             value={chosenAccount?.id}
+           />
++        ) : chosenAccount ? (
++          chosenAccount.name
+         ) : (
+-          chosenAccount?.name
++          <Text style={{ color: theme.pageTextSubdued, fontStyle: 'italic' }}>
++            {t('Click to select account')}
++          </Text>
+         )}
+       </Field>
+       {showStartingOptions ? (
