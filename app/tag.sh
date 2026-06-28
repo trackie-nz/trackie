@@ -1,7 +1,6 @@
 #!/bin/sh
-# Prints the next release tag: <ACTUAL_VERSION>-trackie.<N>, where the base is
+# Sets and pushes the release tag: <ACTUAL_VERSION>-trackie.<N>, where the base is
 # read from release.yml and N is one past the highest existing tag for that base.
-# Pass --push to also create the tag and push it (triggers the Release workflow).
 set -eu
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
@@ -19,9 +18,5 @@ highest=$(git tag --list "${base}-trackie.*" \
 next="${base}-trackie.$(( ${highest:-0} + 1 ))"
 
 git tag "$next"
+git push origin "$next"
 echo "Tagged $next"
-
-if [ "${1:-}" = "--push" ]; then
-  git push origin "$next"
-  echo "Pushed $next"
-fi
