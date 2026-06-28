@@ -7,7 +7,7 @@
 # Usage: sh app/test/assert-overlay.sh [ACTUAL_VERSION]
 set -e
 
-VER=${1:-26.6.0}
+VER=${1:-$(grep '^ACTUAL_VERSION=' "$(dirname "$0")/../version.env" | cut -d= -f2)}
 APP_DIR=$(cd "$(dirname "$0")/.." && pwd)   # the app/ dir
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT

@@ -20,8 +20,8 @@ on:
       - '*-trackie.*'
 
 env:
-  # Pinned upstream release we overlay onto - keep in sync with ci.yml.
-  ACTUAL_VERSION: '26.6.0'
+  # ACTUAL_VERSION is loaded from app/version.env in the first step (single
+  # source of truth, also read by ci.yml and the scripts).
   NODE_OPTIONS: '--max_old_space_size=8192'
   # Skip native binaries the server image never needs (~400 MB, faster install).
   ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
@@ -44,6 +44,9 @@ jobs:
     steps:
       - name: Checkout overlay repo
         uses: actions/checkout@v6
+
+      - name: Load ACTUAL_VERSION (single source of truth)
+        run: grep '^ACTUAL_VERSION=' app/version.env >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v6
         with:

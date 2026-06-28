@@ -7,7 +7,7 @@
 
 services:
   server:
-    image: ghcr.io/trackie-nz/trackie:${ACTUAL_VERSION:-26.6.0}
+    image: ghcr.io/trackie-nz/trackie:${TRACKIE_VERSION:-latest}
     restart: unless-stopped
     ports:
       - "5006:5006"

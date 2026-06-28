@@ -20,14 +20,16 @@ on:
   schedule:
     - cron: '0 12 * * 1' # Mondays - early warning before the next upstream bump
 
-env:
-  ACTUAL_VERSION: '26.6.0'
+# ACTUAL_VERSION is the single source of truth in app/version.env, loaded per job
+# below (a step-set env var does not cross jobs, so each job that needs it reloads).
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Load ACTUAL_VERSION
+        run: grep '^ACTUAL_VERSION=' app/version.env >> "$GITHUB_ENV"
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -42,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Load ACTUAL_VERSION
+        run: grep '^ACTUAL_VERSION=' app/version.env >> "$GITHUB_ENV"
       - name: Build sync-server image
         run: docker build -f app/server.Dockerfile --build-arg ACTUAL_VERSION="${ACTUAL_VERSION}" -t trackie-server app
       - name: Boot + HTTP smoke
