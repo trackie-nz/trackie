@@ -1,0 +1,22 @@
+diff --git a/packages/desktop-client/src/components/FinancesApp.tsx b/packages/desktop-client/src/components/FinancesApp.tsx
+index f1474c0..6dca356 100644
+--- a/packages/desktop-client/src/components/FinancesApp.tsx
++++ b/packages/desktop-client/src/components/FinancesApp.tsx
+@@ -13,6 +13,7 @@ import { getLatestAppVersion, sync } from '#app/appSlice';
+ import { ProtectedRoute } from '#auth/ProtectedRoute';
+ import { Permissions } from '#auth/types';
+ import { useAccounts } from '#hooks/useAccounts';
++import { useAkahuAutoSync } from '#hooks/useAkahuAutoSync';
+ import { useGlobalPref } from '#hooks/useGlobalPref';
+ import { useLocalPref } from '#hooks/useLocalPref';
+ import { useMetaThemeColor } from '#hooks/useMetaThemeColor';
+@@ -96,6 +97,9 @@ export function FinancesApp() {
+ 
+   const { data: accounts, isFetching: isAccountsFetching } = useAccounts();
+ 
++  // TRACKIE: auto-sync linked bank accounts on budget open (20h per-user gate).
++  useAkahuAutoSync();
++
+   const versionInfo = useSelector(state => state.app.versionInfo);
+   const [notifyWhenUpdateIsAvailable] = useGlobalPref(
+     'notifyWhenUpdateIsAvailable',
