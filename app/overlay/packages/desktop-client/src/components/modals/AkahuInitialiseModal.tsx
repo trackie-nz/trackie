@@ -73,7 +73,7 @@ export const AkahuInitialiseModal = ({
       body: (
         <Trans>
           Open{' '}
-          <Link variant="external" to="https://my.akahu.nz/" linkColor="purple">
+          <Link variant="external" to="https://my.akahu.nz/developers" linkColor="purple">
             my.akahu.nz
           </Link>{' '}
           and sign up, or log in if you already have an account.
