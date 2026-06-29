@@ -1,0 +1,51 @@
+diff --git a/packages/desktop-client/src/components/FatalError.tsx b/packages/desktop-client/src/components/FatalError.tsx
+index 5d741a4..b9d7d6e 100644
+--- a/packages/desktop-client/src/components/FatalError.tsx
++++ b/packages/desktop-client/src/components/FatalError.tsx
+@@ -54,19 +54,12 @@ function RenderSimple({ error }: RenderSimpleProps) {
+     msg = (
+       <Text>
+         <Trans>
+-          Actual requires access to <code>SharedArrayBuffer</code> in order to
+-          function properly. If you're seeing this error, either your browser
+-          does not support <code>SharedArrayBuffer</code>, or your server is not
+-          sending the appropriate headers, or you are not using HTTPS. See{' '}
+-          <Link
+-            variant="external"
+-            linkColor="muted"
+-            to="https://actualbudget.org/docs/troubleshooting/shared-array-buffer"
+-          >
+-            our troubleshooting documentation
+-          </Link>{' '}
+-          to learn more. <SharedArrayBufferOverride />
+-        </Trans>
++          Trackie can't run inside this in-app browser. To continue, open this
++          page in your phone's own browser - in Facebook or Instagram, open the
++          menu and choose “Open in external browser”; otherwise open it
++          in Chrome or Safari.
++        </Trans>{' '}
++        <SharedArrayBufferOverride />
+       </Text>
+     );
+   } else if ('BackendInitFailure' in error && error.BackendInitFailure) {
+@@ -207,11 +200,19 @@ export function FatalError({ error: rawError }: FatalErrorProps) {
+         : new Error(String(rawError));
+   const showSimpleRender = 'type' in error && error.type === 'app-init-failure';
+   const isLazyLoadError = error instanceof LazyLoadFailedError;
++  const isSharedArrayBufferMissing =
++    'SharedArrayBufferMissing' in error && error.SharedArrayBufferMissing;
+ 
+   return (
+     <Modal name={lastModal?.name ?? 'fatal-error'} isDismissable={false}>
+       <ModalHeader
+-        title={isLazyLoadError ? t('Loading Error') : t('Fatal Error')}
++        title={
++          isLazyLoadError
++            ? t('Loading Error')
++            : isSharedArrayBufferMissing
++              ? t('Open in your browser')
++              : t('Fatal Error')
++        }
+       />
+       <View
+         style={{
