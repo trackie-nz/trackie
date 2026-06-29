@@ -6,9 +6,16 @@ import { useAccounts } from '#hooks/useAccounts';
 import { useSyncedPref } from '#hooks/useSyncedPref';
 import { useDispatch, useStore } from '#redux';
 
-/** Auto-sync linked bank accounts on budget open, throttled to once per 20h. */
+/** Auto-sync linked bank accounts on budget open, throttled to once per calendar day. */
 
-const AUTO_SYNC_INTERVAL_MS = 20 * 60 * 60 * 1000;
+/** Local calendar day as YYYY-MM-DD, so sync runs again after midnight. */
+function localDayKey(ms: number): string {
+  const d = new Date(ms);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function useAkahuAutoSync() {
   const dispatch = useDispatch();
@@ -38,7 +45,8 @@ export function useAkahuAutoSync() {
 
     const lastAutoSync = Number(store.getState().prefs.synced['akahu-auto-sync-at'] ?? 0);
     const now = Date.now();
-    if (now - lastAutoSync < AUTO_SYNC_INTERVAL_MS) {
+    // Sync once per calendar day, so opening at 9pm and again at 7am both sync.
+    if (lastAutoSync && localDayKey(lastAutoSync) === localDayKey(now)) {
       return;
     }
 
