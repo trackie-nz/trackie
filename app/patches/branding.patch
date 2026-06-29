@@ -1,61 +1,73 @@
 diff --git a/packages/desktop-client/index.html b/packages/desktop-client/index.html
-index f5ddb67..3e816a5 100644
+index f5ddb67..b5503a7 100644
 --- a/packages/desktop-client/index.html
 +++ b/packages/desktop-client/index.html
-@@ -6,7 +6,56 @@
+@@ -6,7 +6,68 @@
        name="viewport"
        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
      />
 -    <title>Actual</title>
 +    <title>Trackie</title>
 +    <!--
-+      Trackie in-app-webview guard. Facebook/Instagram/etc. in-app browsers don't
-+      expose SharedArrayBuffer / cross-origin isolation, so Actual would abort with a
-+      scary "Fatal Error". This runs before the (deferred) app bundle: when isolation
-+      is missing it stops the load and shows a friendly "open in your browser" screen.
-+      Self-contained (no external assets) so it works where the app itself cannot load.
++      Trackie in-app-webview guard. Facebook/Instagram/etc. in-app browsers do not
++      expose SharedArrayBuffer / cross-origin isolation, so Actual aborts with a scary
++      "Fatal Error". This builds a covering "open in your browser" screen with DOM APIs
++      ONLY (never an HTML string): the bundler (Vite) and the edge (Cloudflare) inject
++      script and link tags keyed off the document head/body close tags, and would land
++      inside such a string and prematurely close this script element. The overlay sits at
++      max z-index over the app root, so it shows even though the app boots underneath.
++      Self-contained: no external assets, works where the app itself cannot load.
 +    -->
 +    <script>
-+      (function () {
-+        if (self.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined') return;
-+        if (window.stop) window.stop();
-+        var ua = navigator.userAgent || '';
-+        var hint = /FBAN|FBAV|Instagram|Line\//.test(ua)
++    (function () {
++      if (self.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined') return;
++      var url = location.href;
++      var ua = navigator.userAgent || '';
++      var inApp = /FBAN|FBAV|Instagram|Line\//.test(ua);
++      var o = document.createElement('div');
++      o.id = 'trackie-webview-block';
++      o.style.cssText =
++        'position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483647;display:flex;' +
++        'align-items:center;justify-content:center;background:#c25a2e;color:#fff;' +
++        'font-family:-apple-system,BlinkMacSystemFont,system-ui,Roboto,sans-serif';
++      var card = document.createElement('div');
++      card.style.cssText = 'max-width:22rem;padding:2rem;text-align:center';
++      var h = document.createElement('h1');
++      h.style.cssText = 'margin:0 0 .75rem;font-size:1.4rem';
++      h.textContent = 'Open Trackie in your browser';
++      var p = document.createElement('p');
++      p.style.cssText = 'margin:0 0 1.25rem;line-height:1.5;opacity:.95';
++      p.textContent =
++        'You’re viewing this inside an in-app browser that can’t run Trackie. ' +
++        (inApp
 +          ? 'Tap the ⋯ menu and choose “Open in external browser”.'
-+          : 'Open this page in Chrome or Safari to continue.';
-+        var url = location.href;
-+        var esc = function (s) {
-+          return s.replace(/[&<>"]/g, function (c) {
-+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-+          });
-+        };
-+        document.documentElement.innerHTML =
-+          '<head><meta charset="utf-8" />' +
-+          '<meta name="viewport" content="width=device-width, initial-scale=1" />' +
-+          '<title>Open Trackie in your browser</title></head>' +
-+          '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;' +
-+          'background:#c25a2e;color:#fff;font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,sans-serif">' +
-+          '<div style="max-width:22rem;padding:2rem;text-align:center">' +
-+          '<h1 style="margin:0 0 .75rem;font-size:1.4rem">Open Trackie in your browser</h1>' +
-+          '<p style="margin:0 0 1.25rem;line-height:1.5;opacity:.95">You’re viewing this inside an in-app ' +
-+          'browser that can’t run Trackie. ' + hint + '</p>' +
-+          '<input readonly value="' + esc(url) + '" onclick="this.select()" ' +
-+          'style="width:100%;box-sizing:border-box;padding:.6rem;border:0;border-radius:.4rem;font-size:.85rem" />' +
-+          '<button id="trackie-copy" style="margin-top:.75rem;padding:.6rem 1rem;border:0;border-radius:.4rem;' +
-+          'background:#fff;color:#c25a2e;font-weight:600;font-size:.95rem">Copy link</button>' +
-+          '</div></body>';
-+        var btn = document.getElementById('trackie-copy');
-+        btn.addEventListener('click', function () {
-+          var done = function () { btn.textContent = 'Copied'; };
-+          if (navigator.clipboard && navigator.clipboard.writeText) {
-+            navigator.clipboard.writeText(url).then(done, function () {});
-+          } else {
-+            var i = document.querySelector('input');
-+            i.select();
-+            try { document.execCommand('copy'); done(); } catch (e) {}
-+          }
-+        });
-+      })();
++          : 'Open this page in Chrome or Safari to continue.');
++      var inp = document.createElement('input');
++      inp.readOnly = true;
++      inp.value = url;
++      inp.style.cssText =
++        'width:100%;box-sizing:border-box;padding:.6rem;border:0;border-radius:.4rem;font-size:.85rem';
++      inp.onclick = function () { inp.select(); };
++      var b = document.createElement('button');
++      b.textContent = 'Copy link';
++      b.style.cssText =
++        'margin-top:.75rem;padding:.6rem 1rem;border:0;border-radius:.4rem;' +
++        'background:#fff;color:#c25a2e;font-weight:600;font-size:.95rem';
++      b.onclick = function () {
++        if (navigator.clipboard && navigator.clipboard.writeText) {
++          navigator.clipboard.writeText(url).then(function () { b.textContent = 'Copied'; }, function () {});
++        } else {
++          inp.select();
++          try { document.execCommand('copy'); b.textContent = 'Copied'; } catch (e) {}
++        }
++      };
++      card.appendChild(h);
++      card.appendChild(p);
++      card.appendChild(inp);
++      card.appendChild(b);
++      o.appendChild(card);
++      document.documentElement.appendChild(o);
++    })();
 +    </script>
      <link rel="shortcut icon" href="/favicon.ico" />
      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
