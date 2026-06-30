@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { APP_URL } from '../consts';
 
 interface Props {
   title?: string;
@@ -12,10 +13,39 @@ const {
   title = 'Trackie - Money sorted. Feet up.',
   description = "All your finances in one place, sorted and stress-free. Track your spending, plan ahead, and breathe easy.",
 } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/* Organisation entity - shared identity for the brand, emitted on every page. */
+const organisation = {
+  '@type': 'Organization',
+  '@id': new URL('/#organisation', Astro.site).href,
+  name: 'Trackie',
+  url: Astro.site!.href,
+  logo: new URL('/logo-black.svg', Astro.site).href,
+};
+
+/* The app itself - only meaningful on the homepage, so scope it there. */
+const isHome = Astro.url.pathname === '/';
+const softwareApplication = {
+  '@type': 'SoftwareApplication',
+  name: 'Trackie',
+  url: APP_URL,
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Web',
+  description,
+  publisher: { '@id': organisation['@id'] },
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'NZD' },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': isHome ? [organisation, softwareApplication] : [organisation],
+};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en-NZ">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -24,6 +54,8 @@ const {
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -34,6 +66,7 @@ const {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={new URL('/og-image.jpg', Astro.site)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
