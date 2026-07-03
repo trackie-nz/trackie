@@ -17,5 +17,5 @@ highest=$(git tag --list "${base}-trackie.*" \
 next="${base}-trackie.$(( ${highest:-0} + 1 ))"
 
 git tag "$next"
-git push origin "$next"
+#git push origin "$next"
 echo "Tagged $next"
