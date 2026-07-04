@@ -1,5 +1,5 @@
 diff --git a/packages/desktop-client/src/hooks/useFeatureFlag.ts b/packages/desktop-client/src/hooks/useFeatureFlag.ts
-index e96becc..5537252 100644
+index 3efc596..84544b2 100644
 --- a/packages/desktop-client/src/hooks/useFeatureFlag.ts
 +++ b/packages/desktop-client/src/hooks/useFeatureFlag.ts
 @@ -15,7 +15,7 @@ const DEFAULT_FEATURE_FLAG_STATE: Record<FeatureFlag, boolean> = {
@@ -8,6 +8,6 @@ index e96becc..5537252 100644
    sankeyReport: false,
 -  akahuBankSync: false,
 +  akahuBankSync: true,
+   mobileCalculator: false,
  };
  
- export function useFeatureFlag(name: FeatureFlag): boolean {

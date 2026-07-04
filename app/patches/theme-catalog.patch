@@ -1,10 +1,10 @@
 diff --git a/packages/desktop-client/src/hooks/useThemeCatalog.ts b/packages/desktop-client/src/hooks/useThemeCatalog.ts
-index db92ede..83b3d7e 100644
+index 45a4589..d2a65d6 100644
 --- a/packages/desktop-client/src/hooks/useThemeCatalog.ts
 +++ b/packages/desktop-client/src/hooks/useThemeCatalog.ts
 @@ -4,6 +4,13 @@ import type { CatalogTheme } from '#style/customThemes';
  
- const CATALOG_URL = `https://raw.githubusercontent.com/actualbudget/actual/${process.env.REACT_APP_BRANCH || 'master'}/packages/desktop-client/src/data/customThemeCatalog.json`;
+ const CATALOG_URL = `https://raw.githubusercontent.com/actualbudget/actual/${import.meta.env.REACT_APP_BRANCH || 'master'}/packages/desktop-client/src/data/customThemeCatalog.json`;
  
 +const TRACKIE_CATALOG_THEME: CatalogTheme = {
 +  name: 'Trackie',

@@ -1,13 +1,13 @@
 diff --git a/packages/loot-core/src/types/prefs.ts b/packages/loot-core/src/types/prefs.ts
-index 59a0403..204e20a 100644
+index 2557ee6..1915805 100644
 --- a/packages/loot-core/src/types/prefs.ts
 +++ b/packages/loot-core/src/types/prefs.ts
-@@ -56,7 +56,10 @@ export type SyncedPrefs = Partial<
-     | `camt-swap-payee-memo-${string}`
+@@ -58,7 +58,10 @@ export type SyncedPrefs = Partial<
      | `flip-amount-${string}-${'csv' | 'qif'}`
      | `flags.${FeatureFlag}`
--    | `learn-categories`,
-+    | `learn-categories`
+     | `learn-categories`
+-    | `show-hidden-tags`,
++    | `show-hidden-tags`
 +    // TRACKIE: global per-user gate for Akahu auto-sync on budget open. Stored
 +    // as a synced pref so the 20h throttle is shared across the user's devices.
 +    | `akahu-auto-sync-at`,

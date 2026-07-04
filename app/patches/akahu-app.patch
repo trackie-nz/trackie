@@ -1,21 +1,17 @@
 diff --git a/packages/sync-server/src/app-akahu/app-akahu.ts b/packages/sync-server/src/app-akahu/app-akahu.ts
-index ecf662f..86a4f3e 100644
+index 60cb5b0..c6744d9 100644
 --- a/packages/sync-server/src/app-akahu/app-akahu.ts
 +++ b/packages/sync-server/src/app-akahu/app-akahu.ts
-@@ -12,7 +12,11 @@ import { formatISO } from 'date-fns';
+@@ -11,7 +11,7 @@ import type { EnrichedPendingTransaction } from 'akahu/dist/models/transactions'
  import express from 'express';
  
  import { handleError } from '#app-gocardless/util/handle-error';
 -import { SecretName, secretsService } from '#services/secrets-service';
-+import {
-+  getRefreshedAccount,
-+  getUserTokens,
-+  registerTokenRoutes,
-+} from './trackie-akahu.js';
++import { getUserTokens, registerTokenRoutes } from './trackie-akahu.js';
  import {
    requestLoggerMiddleware,
    validateSessionMiddleware,
-@@ -48,11 +52,15 @@ app.use(express.json());
+@@ -48,11 +48,15 @@ app.use(express.json());
  app.use(requestLoggerMiddleware);
  app.use(validateSessionMiddleware);
  
@@ -24,7 +20,7 @@ index ecf662f..86a4f3e 100644
 +
  app.post(
    '/status',
-   handleError(async (req, res) => {
+   handleError(async (_req, res) => {
 -    const userToken = secretsService.get(SecretName.akahu_userToken);
 -    const appToken = secretsService.get(SecretName.akahu_appToken);
 +    const tokens = getUserTokens(res.locals.user_id);
@@ -33,10 +29,10 @@ index ecf662f..86a4f3e 100644
  
      const configured = userToken != null && appToken != null;
  
-@@ -68,8 +76,9 @@ app.post(
+@@ -68,8 +72,9 @@ app.post(
  app.post(
    '/accounts',
-   handleError(async (req, res) => {
+   handleError(async (_req, res) => {
 -    const userToken = secretsService.get(SecretName.akahu_userToken);
 -    const appToken = secretsService.get(SecretName.akahu_appToken);
 +    const tokens = getUserTokens(res.locals.user_id);
@@ -45,7 +41,7 @@ index ecf662f..86a4f3e 100644
  
      if (!userToken || !appToken) {
        res.send({
-@@ -119,8 +128,9 @@ app.post(
+@@ -119,8 +124,9 @@ app.post(
        });
      }
  
@@ -57,12 +53,12 @@ index ecf662f..86a4f3e 100644
  
      if (!userToken || !appToken) {
        res.send({
-@@ -135,7 +145,7 @@ app.post(
-     try {
-       const akahu = new AkahuClient({ appToken });
+@@ -392,7 +398,7 @@ function processTransaction(
+   };
+ }
  
--      const account = await akahu.accounts.get(userToken, accountId);
-+      const account = await getRefreshedAccount(akahu, userToken, accountId);
-       if (!account) {
-         return res.send({
-           status: 'error',
+-const AKAHU_TRANSACTION_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
++const AKAHU_TRANSACTION_REFRESH_INTERVAL_MS = 20 * 60 * 60 * 1000; // Trackie: 20h cap (upstream 1h)
+ 
+ function shouldRefreshAccount(refreshedAt?: string) {
+   if (!refreshedAt) {

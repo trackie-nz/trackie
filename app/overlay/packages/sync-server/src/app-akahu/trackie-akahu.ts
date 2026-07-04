@@ -6,13 +6,13 @@
   (admin-only), so every user would share one bank connection. We instead give
   each NZ user their own my.akahu.nz personal tokens, stored per user and
   encrypted at rest. This module owns all of the NEW logic - encryption, per-user
-  storage, token validation, the /tokens set/clear routes, and the 20h on-demand
-  refresh - so upstream's transaction-processing code stays upstream's and there
-  is nothing to re-sync on a version bump. The patch only swaps the token source,
-  wraps one refresh call, and mounts the routes registered here.
+  storage, token validation, and the /tokens set/clear routes - so upstream's
+  transaction-processing code stays upstream's and there is nothing to re-sync on
+  a version bump. The patch only swaps the token source and mounts the routes
+  registered here. Upstream owns the on-demand account refresh from v26.7.0; the
+  patch just widens its cap to 20h (upstream ships 1h), which is the frequency
+  agreed upon with Josh Daniell from Akahu.
 */
-import { AkahuClient } from 'akahu';
-import type { Account } from 'akahu';
 import crypto from 'node:crypto';
 import type { Express } from 'express';
 
@@ -137,73 +137,6 @@ function validateTokens(appToken: unknown, userToken: unknown): string | null {
     return 'The User Access Token should start with "user_token_"';
   }
   return null;
-}
-
-/**
- * Refresh cap: at most once per 20h per account, on-demand only.
- *
- * Sync is driven by the user's own client opening/syncing their budget (no
- * background poller). Before reading transactions we ask Akahu to refresh the
- * account, but only if its data is older than this - the "polite" cap. An active
- * user gets fresh data at most daily; a user away two weeks is >20h stale on
- * their next login, so their first sync refreshes immediately. The mutex
- * serialises refreshes server-wide so concurrent budgets don't stampede Akahu.
- */
-const AKAHU_TRANSACTION_REFRESH_INTERVAL_MS = 20 * 60 * 60 * 1000; // 20 hours
-
-/** Minimal promise-chain mutex (#util/mutex does not exist at our base tag). */
-function createMutex() {
-  let chain: Promise<unknown> = Promise.resolve();
-  return function run<T>(task: () => Promise<T>): Promise<T> {
-    const result = chain.then(task);
-    // Keep the chain alive whether the task resolves or rejects.
-    chain = result.then(
-      () => undefined,
-      () => undefined,
-    );
-    return result;
-  };
-}
-
-const runRefresh = createMutex();
-
-function shouldRefreshAccount(refreshedAt?: string): boolean {
-  if (!refreshedAt) return false;
-  const t = Date.parse(refreshedAt);
-  return (
-    Number.isFinite(t) && Date.now() - t > AKAHU_TRANSACTION_REFRESH_INTERVAL_MS
-  );
-}
-
-/**
- * Fetch an account, first asking Akahu to refresh it if its data is >20h old.
- * Drop-in for upstream's `akahu.accounts.get(userToken, accountId)` call.
- */
-export function getRefreshedAccount(
-  akahu: AkahuClient,
-  userToken: string,
-  accountId: string,
-): Promise<Account | null> {
-  return runRefresh(async () => {
-    let account = await akahu.accounts.get(userToken, accountId);
-    if (!account) return null;
-    if (!shouldRefreshAccount(account.refreshed?.transactions)) return account;
-
-    await akahu.accounts.refreshAll(userToken);
-
-    // Poll briefly for Akahu to finish refreshing before we read transactions.
-    for (let i = 0; i < 5; i++) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      account = await akahu.accounts.get(userToken, accountId);
-      if (!account) return null;
-      if (!shouldRefreshAccount(account.refreshed?.transactions)) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        break;
-      }
-    }
-
-    return account;
-  });
 }
 
 /**

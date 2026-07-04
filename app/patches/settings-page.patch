@@ -1,5 +1,5 @@
 diff --git a/packages/desktop-client/src/components/settings/index.tsx b/packages/desktop-client/src/components/settings/index.tsx
-index e9aa929..9d21293 100644
+index 134ec19..b90b8e3 100644
 --- a/packages/desktop-client/src/components/settings/index.tsx
 +++ b/packages/desktop-client/src/components/settings/index.tsx
 @@ -16,7 +16,7 @@ import { css } from '@emotion/css';
@@ -11,15 +11,15 @@ index e9aa929..9d21293 100644
  import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
  import { Page } from '#components/Page';
  import { useServerVersion } from '#components/ServerContext';
-@@ -27,7 +27,6 @@ import { useSyncedPref } from '#hooks/useSyncedPref';
- import { loadPrefs } from '#prefs/prefsSlice';
+@@ -26,7 +26,6 @@ import { useMetadataPref } from '#hooks/useMetadataPref';
+ import { loadPrefs, saveSyncedPrefs } from '#prefs/prefsSlice';
  import { useDispatch, useSelector } from '#redux';
  
 -import { AuthSettings } from './AuthSettings';
  import { Backups } from './Backups';
  import { BudgetTypeSettings } from './BudgetTypeSettings';
  import { CurrencySettings } from './Currency';
-@@ -44,17 +43,19 @@ import { AdvancedToggle, Setting } from './UI';
+@@ -43,17 +42,19 @@ import { AdvancedToggle, Setting } from './UI';
  function About() {
    const version = useServerVersion();
    const versionInfo = useSelector(state => state.app.versionInfo);
@@ -43,7 +43,7 @@ index e9aa929..9d21293 100644
            managing your finances.
          </Trans>
        </Text>
-@@ -108,20 +109,6 @@ function About() {
+@@ -107,20 +108,6 @@ function About() {
            </Link>
          </Text>
        </View>
@@ -64,7 +64,7 @@ index e9aa929..9d21293 100644
      </Setting>
    );
  }
-@@ -241,7 +228,6 @@ export function Settings() {
+@@ -239,7 +226,6 @@ export function Settings() {
          <FormatSettings />
          {isCurrencyExperimentalEnabled && <CurrencySettings />}
          <LanguageSettings />

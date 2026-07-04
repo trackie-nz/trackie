@@ -1,8 +1,8 @@
 diff --git a/packages/loot-core/src/server/accounts/app.ts b/packages/loot-core/src/server/accounts/app.ts
-index a3ac674..b7dc653 100644
+index e531c23..e165f08 100644
 --- a/packages/loot-core/src/server/accounts/app.ts
 +++ b/packages/loot-core/src/server/accounts/app.ts
-@@ -15,7 +15,7 @@ import {
+@@ -14,7 +14,7 @@ import {
  } from '#server/errors';
  import { app as mainApp } from '#server/main-app';
  import { mutator } from '#server/mutators';
@@ -20,7 +20,7 @@ index a3ac674..b7dc653 100644
    'gocardless-get-banks': typeof getGoCardlessBanks;
    'gocardless-create-web-token': typeof createGoCardlessWebToken;
    'accounts-bank-sync': typeof accountsBankSync;
-@@ -1000,6 +1002,78 @@ async function akahuAccounts() {
+@@ -1010,6 +1012,78 @@ async function akahuAccounts() {
    }
  }
  
@@ -99,11 +99,10 @@ index a3ac674..b7dc653 100644
  async function enableBankingStatus() {
    const userToken = await asyncStorage.getItem('user-token');
  
-@@ -1699,6 +1749,9 @@ app.method('enablebanking-poll-auth-stop', stopEnableBankingPollAuth);
- app.method('enablebanking-configure', enableBankingConfigure);
+@@ -1762,6 +1836,8 @@ app.method('enablebanking-configure', enableBankingConfigure);
  app.method('simplefin-accounts', simpleFinAccounts);
  app.method('pluggyai-accounts', pluggyAiAccounts);
-+app.method('akahu-accounts', akahuAccounts);
+ app.method('akahu-accounts', akahuAccounts);
 +app.method('akahu-set-tokens', akahuSetTokens);
 +app.method('akahu-clear-tokens', akahuClearTokens);
  app.method('gocardless-get-banks', getGoCardlessBanks);
