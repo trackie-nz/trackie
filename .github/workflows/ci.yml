@@ -11,6 +11,10 @@ name: CI
 # The scheduled drift-warning job flags when a future version bump will need patch regen.
 
 on:
+  # Manual "Run workflow" trigger. Unlike a push it also runs image-smoke (which
+  # is gated `if: github.event_name != 'push'`), so it is the way to exercise the
+  # full build + boot + isolation smoke on demand without opening a PR.
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
