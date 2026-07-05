@@ -24,8 +24,7 @@ services:
       ACTUAL_OPENID_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       ACTUAL_OPENID_SERVER_HOSTNAME: ${SERVER_HOSTNAME}
       # Sessions expire 90 days after login (value is in seconds), so a leaked
-      # session token is not valid forever. Upstream applies it as now + N at
-      # login; existing "never" sessions keep going until the user next signs in.
+      # session token is not valid forever.
       ACTUAL_TOKEN_EXPIRATION: 7776000   # 90 days
       # --- Identity: HMAC key for user_name. Generate once; NEVER rotate
       #     (rotating orphans every existing user from their budget). ---
