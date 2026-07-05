@@ -10,6 +10,12 @@ name: Release
 # amd64 only (the target servers are x86), ghcr.io only (no Docker Hub). The image
 # is boot + HTTP smoke-tested BEFORE it is pushed, and gets a build-provenance
 # attestation after the push.
+#
+# It also publishes the client code verifier (verify/) plus a manifest of the exact
+# built client to GitHub Pages, so anyone can check that the code their browser was
+# served matches this build. The Pages deploy is a separate job, so a Pages hiccup
+# cannot fail an already-pushed release. (One-time setup: repo Settings -> Pages ->
+# Source: GitHub Actions.)
 
 on:
   workflow_dispatch:
@@ -163,3 +169,41 @@ jobs:
           subject-name: ${{ steps.image.outputs.ref }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
+      - name: Stage the client code verifier + a manifest of the shipped client
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        # Hash the exact built client that was grafted into the image, so the
+        # manifest describes byte-for-byte what the server serves. Served at
+        # https://trackie-nz.github.io/trackie/verify/ (GitHub, not Trackie).
+        run: |
+          VERSION="$REF_NAME"
+          [ "$REF_TYPE" = "tag" ] || VERSION="$ACTUAL_VERSION"
+          mkdir -p pages/verify
+          cp verify/index.html verify/verify-core.js pages/verify/
+          node verify/generate-manifest.js \
+            actual/node_modules/@actual-app/web/build "$VERSION" > pages/verify/manifest.json
+          echo "Staged verifier for $VERSION ($(grep -c ':' pages/verify/manifest.json) files)"
+
+      - name: Upload the verifier as a Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  publish-verifier:
+    # Decoupled from the release: if Pages is not yet enabled or the deploy hiccups,
+    # the image is already pushed and attested. Enable once at Settings -> Pages ->
+    # Source: GitHub Actions.
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy the verifier to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
