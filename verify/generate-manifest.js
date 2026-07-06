@@ -35,4 +35,13 @@ for (const path of listFiles(buildDir).sort()) {
   files[path] = await sha256Hex(readFileSync(join(buildDir, path)));
 }
 
-process.stdout.write(JSON.stringify({ version, files }, null, 2) + '\n');
+// Embed the page document itself so the verifier can show WHAT changed (e.g. a
+// Cloudflare-injected script), not just that it changed. Only index.html - a
+// diff of minified JS/wasm would be noise. Its hash is already in `files`, so
+// sha256(documents['index.html']) === files['index.html'] by construction.
+const documents = {};
+try {
+  documents['index.html'] = readFileSync(join(buildDir, 'index.html'), 'utf8');
+} catch { /* no index.html in this build - nothing to diff against */ }
+
+process.stdout.write(JSON.stringify({ version, files, documents }, null, 2) + '\n');

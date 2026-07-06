@@ -1,0 +1,62 @@
+name: Republish verifier
+
+# Redeploys the client-code verifier (verify/) to GitHub Pages WITHOUT rebuilding
+# the Trackie image. Use this to ship changes to the verifier page or its logic
+# (verify/index.html, verify/verify-core.js) on their own - a full Release takes
+# the ~8GB React compile just to reach the Pages step, which is wasteful when the
+# built client (and therefore the manifest) has not changed.
+#
+# It reuses the manifest.json already published on Pages - the hashes of the last
+# released client - so the verifier keeps checking against the same build. To
+# refresh the manifest itself (a new client build), run the full Release workflow.
+#
+# Manual only. One-time setup is the same as Release: Settings -> Pages ->
+# Source: GitHub Actions.
+
+on:
+  workflow_dispatch:
+
+# Serialise with any other Pages deploy (e.g. a Release) so they cannot race.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  republish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Stage the verifier and carry over the published manifest
+        env:
+          # The manifest already serving on Pages is the source of truth for the
+          # last released build's hashes. Reuse it verbatim; only the page/logic
+          # around it changes here.
+          MANIFEST_URL: https://trackie-nz.github.io/trackie/verify/manifest.json
+        run: |
+          mkdir -p pages/verify
+          cp verify/index.html verify/verify-core.js pages/verify/
+          if ! curl -fsS "$MANIFEST_URL" -o pages/verify/manifest.json; then
+            echo "::error::Could not fetch the published manifest from $MANIFEST_URL. Run the Release workflow once to publish it before using this."
+            exit 1
+          fi
+          node -e "const v=JSON.parse(require('fs').readFileSync('pages/verify/manifest.json','utf8')).version; if(!v) throw new Error('manifest has no version'); process.stdout.write('Reusing manifest for build '+v+'\n')"
+          # Redirect the bare Pages root to the verifier (mirrors release.yml).
+          printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=verify/"><title>Trackie client code verifier</title><a href="verify/">Trackie client code verifier</a>' > pages/index.html
+
+      - name: Upload the verifier as a Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

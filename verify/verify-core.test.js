@@ -8,8 +8,9 @@
 */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { gzipSync, brotliCompressSync } from 'node:zlib';
 
-import { verifyHar, sha256Hex } from './verify-core.js';
+import { verifyHar, sha256Hex, diffInsertion } from './verify-core.js';
 
 const enc = new TextEncoder();
 const base64 = bytes => Buffer.from(bytes).toString('base64');
@@ -89,4 +90,61 @@ test('a session with no index.html document does not pass', async () => {
   const report = await verifyHar(har, await goodManifest());
   assert.equal(report.ok, false);
   assert.equal(report.sawIndex, false);
+  assert.equal(report.indexPresent, false);
+});
+
+/** An entry whose body was transfer-compressed, as a quirky HAR would store it. */
+function compressedEntry(url, mimeType, bytes, contentEncoding) {
+  return {
+    request: { url },
+    response: {
+      headers: [{ name: 'Content-Encoding', value: contentEncoding }],
+      content: { mimeType, encoding: 'base64', text: Buffer.from(bytes).toString('base64') },
+    },
+  };
+}
+
+test('a gzip-compressed body in the HAR still matches (compression is reversed)', async () => {
+  const har = { log: { entries: [
+    entry(`${APP}/`, 'text/html', indexHtml),
+    compressedEntry(`${APP}/static/app.js`, 'application/javascript', gzipSync(Buffer.from(appJs)), 'gzip'),
+  ] } };
+  const report = await verifyHar(har, await goodManifest());
+  assert.ok(report.results.some(r => r.kind === 'match' && r.path === 'static/app.js'));
+  assert.equal(report.ok, true);
+});
+
+test('a brotli body we cannot decode is unreadable, never a false "modified"', async () => {
+  // A longer payload so the brotli output is unambiguously binary (invalid UTF-8).
+  const js = 'console.log("' + 'x'.repeat(400) + '")';
+  const manifest = await goodManifest();
+  manifest.files['static/app.js'] = await sha256Hex(new TextEncoder().encode(js));
+  const har = { log: { entries: [
+    entry(`${APP}/`, 'text/html', indexHtml),
+    compressedEntry(`${APP}/static/app.js`, 'application/javascript', brotliCompressSync(Buffer.from(js)), 'br'),
+  ] } };
+  const report = await verifyHar(har, manifest);
+  assert.ok(report.results.some(r => r.kind === 'unreadable' && r.path === 'static/app.js'));
+  assert.ok(!report.results.some(r => r.kind === 'modified'));
+  assert.equal(report.ok, false); // inconclusive, but crucially not a false FAIL
+});
+
+test('a present-but-modified index.html is reported, and is not "no document"', async () => {
+  // Models the Cloudflare case: the page document is decoded and present, but
+  // carries an injected snippet, so it must read as modified (not absent).
+  const har = goodHar();
+  har.log.entries[0].response.content.text = indexHtml + '<script>cf()</script>';
+  const report = await verifyHar(har, await goodManifest());
+  assert.equal(report.ok, false);
+  assert.equal(report.indexPresent, true);
+  assert.equal(report.sawIndex, false);
+  const row = report.results.find(r => r.path === 'index.html');
+  assert.equal(row.kind, 'modified');
+  assert.equal(row.text, indexHtml + '<script>cf()</script>'); // carried for diffing
+});
+
+test('diffInsertion isolates a contiguous injection', () => {
+  const d = diffInsertion(indexHtml, indexHtml + '<script>cf()</script>');
+  assert.equal(d.removed, '');
+  assert.equal(d.added, '<script>cf()</script>');
 });

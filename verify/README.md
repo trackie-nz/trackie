@@ -14,16 +14,27 @@ swapped.)
 ## How it works
 
 1. **In CI**, right after the client is built, `generate-manifest.js` hashes every
-   file in the build and writes `manifest.json` (`{ path: sha256 }`). It is
-   published on GitHub Pages next to the verifier and is covered by the release
-   image's build-provenance attestation, so the manifest traces back to this
-   public repo and workflow.
+   file in the build and writes `manifest.json` (a `sha256` per file, plus the exact
+   text of `index.html` so the page can show *what* changed). It is published on
+   GitHub Pages next to the verifier and is covered by the release image's
+   build-provenance attestation, so the manifest traces back to this public repo
+   and workflow.
 2. **You** save a HAR of your own session from your browser's DevTools (the browser
    records it, so the app cannot fake it).
 3. **The verifier page** (`index.html`, served by GitHub - not by Trackie) hashes
    every code response in your HAR and checks each one against the manifest. It
    passes only if every code file matches, nothing extra was served, and
-   `index.html` itself matched.
+   `index.html` itself matched. It fails **safe**: a response it cannot reconstruct
+   (a body the browser stored transfer-compressed with a codec it can't reverse,
+   e.g. brotli, or a partial capture) is reported as *unreadable*, never as
+   tampering. When `index.html` differs it shows the exact diff, so a benign edit -
+   like a CDN injecting a script - is obvious at a glance.
+
+> **CDNs/proxies:** a proxy in front of the app (e.g. Cloudflare) can inject into
+> the HTML document or transfer-compress assets. The verifier reverses gzip/deflate
+> and diffs any HTML injection so you can see it - but for a clean PASS the operator
+> must not let the proxy alter the served HTML (on Cloudflare: turn off JavaScript
+> Detections, Rocket Loader and Email Obfuscation for the app host).
 
 ## Files
 

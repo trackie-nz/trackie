@@ -183,6 +183,9 @@ jobs:
           cp verify/index.html verify/verify-core.js pages/verify/
           node verify/generate-manifest.js \
             actual/node_modules/@actual-app/web/build "$VERSION" > pages/verify/manifest.json
+          # The verifier lives at /verify/; redirect the bare Pages root there so
+          # a trimmed URL (/trackie/) lands on the tool instead of a 404.
+          printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=verify/"><title>Trackie client code verifier</title><a href="verify/">Trackie client code verifier</a>' > pages/index.html
           echo "Staged verifier for $VERSION ($(grep -c ':' pages/verify/manifest.json) files)"
 
       - name: Upload the verifier as a Pages artifact

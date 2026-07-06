@@ -29,10 +29,21 @@
       .banner { padding: 16px 18px; border-radius: 10px; font-weight: 600; margin: 18px 0; }
       .pass { background: #e5f6e8; color: #12692a; }
       .fail { background: #fde8e8; color: #9c1c1c; }
+      .warn { background: #fff4e5; color: #8a5300; }
       .muted { color: #666; font-size: 0.92rem; }
       table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 0.9rem; }
       td, th { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; vertical-align: top; }
       .limits { margin-top: 36px; border-top: 1px solid #eee; padding-top: 18px; }
+      details.diff { margin: 10px 0 4px; }
+      details.diff summary { cursor: pointer; font-size: 0.9rem; color: #444; }
+      pre.diff {
+        background: #f7f7fa; border: 1px solid #e6e6ee; border-radius: 8px;
+        padding: 12px; margin-top: 10px; overflow-x: auto; white-space: pre-wrap;
+        word-break: break-all; font-size: 0.82rem; line-height: 1.4;
+      }
+      pre.diff ins { background: #cdefd3; text-decoration: none; }
+      pre.diff del { background: #f6c9c9; text-decoration: line-through; }
+      pre.diff .ctx { color: #999; }
     </style>
   </head>
   <body>
@@ -82,7 +93,7 @@
     </div>
 
     <script type="module">
-      import { verifyHar } from './verify-core.js';
+      import { verifyHar, diffInsertion } from './verify-core.js';
 
       const $ = id => document.getElementById(id);
       const escape = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -115,31 +126,65 @@
       }
 
       function render(report) {
-        const problems = report.results.filter(r =>
-          r.kind === 'modified' || r.kind === 'unexpected' || r.kind === 'unreadable');
-        const matched = report.results.filter(r => r.kind === 'match').length;
-        const thirdParty = report.results.filter(r => r.kind === 'third-party').length;
+        const kinds = k => report.results.filter(r => r.kind === k);
+        const modified = kinds('modified');
+        const unexpected = kinds('unexpected');
+        const unreadable = kinds('unreadable');
+        const matched = kinds('match').length;
+        const thirdParty = kinds('third-party').length;
+        const tampered = modified.length + unexpected.length > 0;
 
-        const banner = report.ok
-          ? `<div class="banner pass">PASS - all ${matched} code files served by
-             ${escape(report.appOrigin)} match the published build.</div>`
-          : `<div class="banner fail">FAIL - the served code does not match the
-             published build. See below.</div>`;
+        // Three outcomes: a clean PASS, a real FAIL (something changed or was
+        // injected), or INCONCLUSIVE (nothing looked tampered, but some files
+        // could not be read - typically a non-Chrome HAR or a partial capture).
+        let banner;
+        if (report.ok) {
+          banner = `<div class="banner pass">PASS - all ${matched} code files served by
+            ${escape(report.appOrigin)} match the published build.</div>`;
+        } else if (tampered) {
+          banner = `<div class="banner fail">FAIL - the served code does not match the
+            published build. See below.</div>`;
+        } else {
+          banner = `<div class="banner warn">INCONCLUSIVE - ${matched} file(s) matched,
+            but some could not be checked. Capture a full page load in Chrome with
+            "Disable cache" ticked, then try again.</div>`;
+        }
 
+        const label = {
+          modified: 'modified', unexpected: 'unexpected (not in build)', unreadable: 'could not read',
+        };
+        const problems = [...modified, ...unexpected, ...unreadable];
         const rows = problems.map(r => `
-          <tr><td>${escape(r.kind)}</td><td>${escape(r.path || r.url)}</td></tr>`).join('');
+          <tr><td>${escape(label[r.kind] || r.kind)}</td>
+              <td>${escape(r.path || r.url)}${diffFor(r)}</td></tr>`).join('');
         const table = problems.length
-          ? `<table><tr><th>Problem</th><th>File</th></tr>${rows}</table>`
-          : '';
+          ? `<table><tr><th>Problem</th><th>File</th></tr>${rows}</table>` : '';
 
         const notes = [];
-        if (!report.sawIndex)
+        if (!report.indexPresent)
           notes.push('No page document (index.html) was found in the HAR - capture a full page load with the cache disabled.');
         if (thirdParty)
           notes.push(`${thirdParty} script(s) came from other sites - usually your own browser extensions, not Trackie.`);
 
         $('result').innerHTML = banner + table +
           notes.map(n => `<p class="muted">${escape(n)}</p>`).join('');
+      }
+
+      // For a modified page document, show exactly what was inserted or removed
+      // versus the published build (e.g. a Cloudflare-injected script) - so a
+      // benign edit is obvious rather than an opaque "modified". Needs the
+      // expected text, which the manifest carries for index.html.
+      function diffFor(r) {
+        const expected = manifest.documents?.[r.path];
+        if (r.kind !== 'modified' || !expected || r.text == null) return '';
+        const d = diffInsertion(expected, r.text);
+        const seg = (tag, text) => text ? `<${tag}>${escape(text)}</${tag}>` : '';
+        const ell = on => on ? '<span class="ctx">…</span>' : '';
+        const body = ell(d.truncatedHead) + `<span class="ctx">${escape(d.before)}</span>` +
+          seg('del', d.removed) + seg('ins', d.added) +
+          `<span class="ctx">${escape(d.after)}</span>` + ell(d.truncatedTail);
+        return `<details class="diff"><summary>show what changed</summary>` +
+          `<pre class="diff">${body}</pre></details>`;
       }
 
       // Wire up drag-and-drop and click-to-choose.
