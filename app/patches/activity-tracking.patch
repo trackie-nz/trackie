@@ -1,0 +1,20 @@
+diff --git a/packages/sync-server/src/util/middlewares.ts b/packages/sync-server/src/util/middlewares.ts
+index 347a0f4..5b5e48a 100644
+--- a/packages/sync-server/src/util/middlewares.ts
++++ b/packages/sync-server/src/util/middlewares.ts
+@@ -3,6 +3,7 @@ import * as expressWinston from 'express-winston';
+ import * as winston from 'winston';
+ 
+ import { validateSession } from './validate-user';
++import { recordActivity } from './trackie-activity';
+ 
+ async function errorMiddleware(
+   err: Error,
+@@ -41,6 +42,7 @@ const validateSessionMiddleware = async (
+   }
+ 
+   res.locals = session;
++  void recordActivity(session.user_id); // TRACKIE: first-party active-user signal
+   next();
+ };
+ 
