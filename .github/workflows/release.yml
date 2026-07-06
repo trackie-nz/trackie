@@ -14,8 +14,7 @@ name: Release
 # It also publishes the client code verifier (verify/) plus a manifest of the exact
 # built client to GitHub Pages, so anyone can check that the code their browser was
 # served matches this build. The Pages deploy is a separate job, so a Pages hiccup
-# cannot fail an already-pushed release. (One-time setup: repo Settings -> Pages ->
-# Source: GitHub Actions.)
+# cannot fail an already-pushed release.
 
 on:
   workflow_dispatch:
@@ -192,9 +191,6 @@ jobs:
           path: pages
 
   publish-verifier:
-    # Decoupled from the release: if Pages is not yet enabled or the deploy hiccups,
-    # the image is already pushed and attested. Enable once at Settings -> Pages ->
-    # Source: GitHub Actions.
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
