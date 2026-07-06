@@ -19,10 +19,12 @@ on:
     branches: [main]
     paths:
       - 'app/**'
+      - 'verify/**'
       - '.github/workflows/ci.yml'
   pull_request:
     paths:
       - 'app/**'
+      - 'verify/**'
       - '.github/workflows/ci.yml'
   schedule:
     - cron: '0 12 * * 1' # Mondays - early warning before the next upstream bump
@@ -42,6 +44,8 @@ jobs:
           node-version: '22'
       - name: Unit tests (identity / PII enforcement)
         run: node --experimental-strip-types --test app/test/*.test.ts
+      - name: Client code verification unit tests
+        run: node --test verify/verify-core.test.js
       - name: Apply overlay to pinned upstream + assert PII properties (drift detector)
         run: sh app/test/assert-overlay.sh "${ACTUAL_VERSION}"
 

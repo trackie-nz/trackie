@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verify Trackie's client code</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 20px 64px;
+        line-height: 1.55;
+        color: #1a1a1a;
+      }
+      h1 { font-size: 1.6rem; }
+      code { background: #f0f0f3; padding: 0 4px; border-radius: 4px; }
+      .step { margin: 8px 0; }
+      #drop {
+        border: 2px dashed #b7b3c8;
+        border-radius: 10px;
+        padding: 28px;
+        text-align: center;
+        color: #555;
+        cursor: pointer;
+        margin: 18px 0;
+      }
+      #drop.over { border-color: #5c3dbb; background: #f7f5ff; }
+      .banner { padding: 16px 18px; border-radius: 10px; font-weight: 600; margin: 18px 0; }
+      .pass { background: #e5f6e8; color: #12692a; }
+      .fail { background: #fde8e8; color: #9c1c1c; }
+      .muted { color: #666; font-size: 0.92rem; }
+      table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 0.9rem; }
+      td, th { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; vertical-align: top; }
+      .limits { margin-top: 36px; border-top: 1px solid #eee; padding-top: 18px; }
+    </style>
+  </head>
+  <body>
+    <h1>Verify Trackie's client code</h1>
+
+    <p>
+      This page checks that the app code your browser was served is
+      <strong>byte-for-byte identical</strong> to Trackie's public, open-source
+      build - the exact files produced by the public build pipeline on GitHub,
+      with nothing added or changed.
+    </p>
+    <p class="muted">
+      It runs entirely in your browser and this page is served by GitHub, not by
+      Trackie, so Trackie cannot influence the result. It is a spot check of the
+      one session you capture below.
+    </p>
+
+    <h2>1. Save your session</h2>
+    <div class="step">
+      Open the app, then open your browser's developer tools
+      (<code>F12</code>) and go to the <strong>Network</strong> tab. Tick
+      <strong>Disable cache</strong>, reload the page, click around a little, then
+      right-click any request and choose <strong>Save all as HAR</strong>.
+    </div>
+
+    <h2>2. Check it</h2>
+    <p id="manifest-status" class="muted">Loading the published build list…</p>
+    <div id="drop">Drop your <strong>.har</strong> file here, or click to choose it</div>
+    <input id="file" type="file" accept=".har,application/json" hidden />
+
+    <div id="result"></div>
+
+    <div class="limits">
+      <h2>What this does and does not prove</h2>
+      <p>
+        <strong>It proves:</strong> for the session you captured, every piece of
+        code the app served you matches the public build - so no hidden logging or
+        data-stealing code was slipped into your client.
+      </p>
+      <p class="muted">
+        <strong>It does not prove:</strong> anything about other sessions or the
+        future (re-run it whenever you like); anything about the server's own
+        behaviour; and it does not cover bank-sync data, which by design passes
+        through the server. It applies to end-to-end-encrypted budgets. To trust
+        nobody at all, you can self-host the open-source client yourself.
+      </p>
+    </div>
+
+    <script type="module">
+      import { verifyHar } from './verify-core.js';
+
+      const $ = id => document.getElementById(id);
+      const escape = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+      // The published build list. It sits next to this page on GitHub, so the
+      // operator of the app cannot swap it. (When opened as a local file this
+      // fetch fails; then we offer a file picker for the manifest instead.)
+      let manifest = null;
+      try {
+        const res = await fetch('./manifest.json');
+        if (!res.ok) throw new Error(res.status);
+        manifest = await res.json();
+        $('manifest-status').textContent = `Checking against published build ${manifest.version}.`;
+      } catch {
+        $('manifest-status').innerHTML =
+          'Could not load the build list automatically. ' +
+          'Download <code>manifest.json</code> from the release and ' +
+          '<label style="text-decoration:underline;cursor:pointer">choose it here' +
+          '<input id="mfile" type="file" accept=".json" hidden></label>.';
+        $('mfile')?.addEventListener('change', async e => {
+          manifest = JSON.parse(await e.target.files[0].text());
+          $('manifest-status').textContent = `Checking against build ${manifest.version}.`;
+        });
+      }
+
+      async function check(file) {
+        if (!manifest) { alert('Load the build list (manifest.json) first.'); return; }
+        const har = JSON.parse(await file.text());
+        render(await verifyHar(har, manifest));
+      }
+
+      function render(report) {
+        const problems = report.results.filter(r =>
+          r.kind === 'modified' || r.kind === 'unexpected' || r.kind === 'unreadable');
+        const matched = report.results.filter(r => r.kind === 'match').length;
+        const thirdParty = report.results.filter(r => r.kind === 'third-party').length;
+
+        const banner = report.ok
+          ? `<div class="banner pass">PASS - all ${matched} code files served by
+             ${escape(report.appOrigin)} match the published build.</div>`
+          : `<div class="banner fail">FAIL - the served code does not match the
+             published build. See below.</div>`;
+
+        const rows = problems.map(r => `
+          <tr><td>${escape(r.kind)}</td><td>${escape(r.path || r.url)}</td></tr>`).join('');
+        const table = problems.length
+          ? `<table><tr><th>Problem</th><th>File</th></tr>${rows}</table>`
+          : '';
+
+        const notes = [];
+        if (!report.sawIndex)
+          notes.push('No page document (index.html) was found in the HAR - capture a full page load with the cache disabled.');
+        if (thirdParty)
+          notes.push(`${thirdParty} script(s) came from other sites - usually your own browser extensions, not Trackie.`);
+
+        $('result').innerHTML = banner + table +
+          notes.map(n => `<p class="muted">${escape(n)}</p>`).join('');
+      }
+
+      // Wire up drag-and-drop and click-to-choose.
+      const drop = $('drop'), file = $('file');
+      drop.addEventListener('click', () => file.click());
+      file.addEventListener('change', e => e.target.files[0] && check(e.target.files[0]));
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.classList.remove('over');
+        if (e.dataTransfer.files[0]) check(e.dataTransfer.files[0]);
+      });
+    </script>
+  </body>
+</html>
