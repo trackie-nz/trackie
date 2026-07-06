@@ -41,8 +41,8 @@ export function recordActivity(userId: string): void {
       return;
     }
     getAccountDb().mutate(
-      "INSERT OR IGNORE INTO trackie_activity (user_id, day) VALUES (?, date('now'))",
-      [userId],
+      'INSERT OR IGNORE INTO trackie_activity (user_id, day) VALUES (?, ?)',
+      [userId, today],
     );
     seenToday.add(userId);
   } catch {
