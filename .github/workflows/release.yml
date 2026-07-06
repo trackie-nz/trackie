@@ -201,8 +201,21 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      # Whichever attempt succeeded carries the URL.
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     steps:
+      # By now the image is pushed and attested, so a Pages backend hiccup
+      # ("Deployment failed, try again later") must not fail the release. Try once
+      # and tolerate a transient failure, then retry after a short wait; only a
+      # second failure fails the job - a persistent problem worth surfacing.
       - name: Deploy the verifier to GitHub Pages
         id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Pause before retrying a transient Pages failure
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 30
+      - name: Deploy the verifier to GitHub Pages (retry)
+        id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
