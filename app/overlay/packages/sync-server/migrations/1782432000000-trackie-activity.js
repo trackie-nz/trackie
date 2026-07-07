@@ -1,7 +1,7 @@
 import { getAccountDb } from '../src/account-db';
 
 /*
-  TRACKIE active-user metrics. One tiny row per user per UTC day, written by the
+  TRACKIE active-user metrics. One tiny row per user per NZ day, written by the
   recordActivity helper (src/util/trackie-activity.ts) from the shared session
   middleware.
 
@@ -15,7 +15,7 @@ export const up = async function () {
   await getAccountDb().exec(`
     CREATE TABLE IF NOT EXISTS trackie_activity (
       user_id TEXT NOT NULL,
-      day     TEXT NOT NULL,               -- UTC 'YYYY-MM-DD'
+      day     TEXT NOT NULL,               -- NZ (Pacific/Auckland) 'YYYY-MM-DD'
       PRIMARY KEY (user_id, day),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );

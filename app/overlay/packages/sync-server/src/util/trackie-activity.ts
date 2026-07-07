@@ -6,20 +6,20 @@ import { getAccountDb } from '#account-db';
   akahu, admin) funnels through the shared validateSessionMiddleware, which is
   the single injection point that calls recordActivity(user_id) after resolving
   the session (patches/activity-tracking.patch). We record at most one row per
-  user per UTC day in trackie_activity so we can identify dormant accounts.
+  user per NZ day in trackie_activity so we can identify dormant accounts.
 */
 
 /*
-  In-process throttle: the first authenticated hit from a user on a given UTC day
+  In-process throttle: the first authenticated hit from a user on a given NZ day
   writes to the DB; every later hit that day is a cheap Set lookup. The set is
-  cleared when the UTC day rolls over, so it stays bounded to the day's active
+  cleared when the NZ day rolls over, so it stays bounded to the day's active
   users instead of growing without limit over the server's uptime.
 */
 let throttleDay = '';
 const seenToday = new Set<string>();
 
 /**
- * Record that `userId` was active today, at most once per user per UTC day.
+ * Record that `userId` was active today, at most once per user per NZ day.
  *
  * Fire-and-forget and defensive: any failure (DB busy, migration not yet run) is
  * swallowed so activity tracking can never break the request it rides on. The
@@ -32,7 +32,10 @@ export function recordActivity(userId: string): void {
     return;
   }
   try {
-    const today = new Date().toISOString().slice(0, 10); // UTC 'YYYY-MM-DD'
+    // Pacific/Auckland calendar day; 'en-CA' formats as ISO 'YYYY-MM-DD'.
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Pacific/Auckland',
+    });
     if (today !== throttleDay) {
       throttleDay = today;
       seenToday.clear();
