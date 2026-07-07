@@ -168,6 +168,7 @@ jobs:
           subject-name: ${{ steps.image.outputs.ref }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+          create-storage-record: false
 
       - name: Stage the client code verifier + a manifest of the shipped client
         env:

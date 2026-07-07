@@ -143,6 +143,47 @@ test('a present-but-modified index.html is reported, and is not "no document"', 
   assert.equal(row.text, indexHtml + '<script>cf()</script>'); // carried for diffing
 });
 
+test('a browser-truncated body is unreadable (partial), never a false modified', async () => {
+  // Firefox caps saved bodies at ~1 MB, so a large file arrives cut off. The HAR
+  // still reports the true full size in content.size; a prefix must not read as
+  // tampering.
+  const full = 'x'.repeat(50);
+  const manifest = await goodManifest();
+  manifest.files['static/app.js'] = await sha256Hex(new TextEncoder().encode(full));
+  const e = {
+    request: { url: `${APP}/static/app.js` },
+    response: { content: { mimeType: 'application/javascript', size: 50, text: 'xxxxx' } },
+  };
+  const har = { log: { entries: [entry(`${APP}/`, 'text/html', indexHtml), e] } };
+  const report = await verifyHar(har, manifest);
+  const row = report.results.find(r => r.path === 'static/app.js');
+  assert.equal(row.kind, 'unreadable');
+  assert.equal(row.reason, 'partial');
+  assert.ok(!report.results.some(r => r.kind === 'modified'));
+  assert.equal(report.ok, false);
+});
+
+test('locks onto the app origin, ignoring an auth-server / challenge capture', async () => {
+  // Models a real login capture: an auth server (Logto) and a Cloudflare
+  // challenge page load FIRST, from a different origin, before the app itself.
+  // The verifier must check the app, not the auth flow.
+  const AUTH = 'https://auth.example.nz';
+  const har = { log: { entries: [
+    entry(`${AUTH}/oidc/auth`, 'text/html', '<!doctype html><title>Just a moment...</title>'),
+    entry(`${AUTH}/assets/react-DITJTaWc.js`, 'application/javascript', 'React()'),
+    entry(`${AUTH}/assets/index-DQ_M9VE0.css`, 'text/css', '.x{}'),
+    entry(`${APP}/`, 'text/html', indexHtml),
+    entry(`${APP}/static/app.js`, 'application/javascript', appJs),
+    entry(`${APP}/sql.wasm`, 'application/wasm', base64(wasm), 'base64'),
+  ] } };
+  const report = await verifyHar(har, await goodManifest());
+  assert.equal(report.appOrigin, APP);            // the build's origin, not auth
+  assert.equal(report.ok, true);                  // app verified clean
+  assert.ok(!report.results.some(r => r.kind === 'modified'));   // challenge page not mistaken for index.html
+  assert.ok(!report.results.some(r => r.kind === 'unexpected')); // auth assets not judged against our build
+  assert.equal(report.results.filter(r => r.kind === 'third-party').length, 3); // auth html + 2 auth assets
+});
+
 test('diffInsertion isolates a contiguous injection', () => {
   const d = diffInsertion(indexHtml, indexHtml + '<script>cf()</script>');
   assert.equal(d.removed, '');

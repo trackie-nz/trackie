@@ -150,12 +150,14 @@
             "Disable cache" ticked, then try again.</div>`;
         }
 
-        const label = {
-          modified: 'modified', unexpected: 'unexpected (not in build)', unreadable: 'could not read',
-        };
+        const label = r =>
+          r.kind === 'modified' ? 'modified'
+          : r.kind === 'unexpected' ? 'unexpected (not in build)'
+          : r.reason === 'partial' ? 'only partly saved'
+          : 'could not read';
         const problems = [...modified, ...unexpected, ...unreadable];
         const rows = problems.map(r => `
-          <tr><td>${escape(label[r.kind] || r.kind)}</td>
+          <tr><td>${escape(label(r))}</td>
               <td>${escape(r.path || r.url)}${diffFor(r)}</td></tr>`).join('');
         const table = problems.length
           ? `<table><tr><th>Problem</th><th>File</th></tr>${rows}</table>` : '';
@@ -163,8 +165,13 @@
         const notes = [];
         if (!report.indexPresent)
           notes.push('No page document (index.html) was found in the HAR - capture a full page load with the cache disabled.');
+        const partial = unreadable.filter(r => r.reason === 'partial').length;
+        if (partial)
+          notes.push(`${partial} file(s) were only partly saved by your browser, so they could not be checked. `
+            + 'Firefox caps saved response bodies at ~1 MB - use Chrome with "Disable cache" ticked, or raise '
+            + 'about:config > devtools.netmonitor.responseBodyLimit, then re-capture.');
         if (thirdParty)
-          notes.push(`${thirdParty} script(s) came from other sites - usually your own browser extensions, not Trackie.`);
+          notes.push(`${thirdParty} response(s) came from other origins (the login/auth server, a CDN, a challenge page, or your browser extensions) and were ignored - they are not part of the app build.`);
 
         $('result').innerHTML = banner + table +
           notes.map(n => `<p class="muted">${escape(n)}</p>`).join('');

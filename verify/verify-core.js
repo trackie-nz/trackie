@@ -140,13 +140,27 @@ function htmlText(bytes, mimeType) {
 }
 
 /*
+  Did the browser save only PART of this body? A HAR reports the body's full
+  decoded size in `content.size`; some browsers cap what they actually store
+  (Firefox caps saved response bodies at ~1 MB), so a large file arrives cut off.
+  When we hold fewer decoded bytes than the full size, we cannot verify it.
+*/
+function truncated(decoded, content) {
+  return typeof content?.size === 'number' && content.size > 0 &&
+    decoded.length < content.size;
+}
+
+/*
   Sort one code response into a bucket by comparing it to the published hash,
-  reversing transfer-compression where we can and failing SAFE where we cannot.
+  reversing transfer-compression where we can and failing SAFE where we cannot
+  (a body we cannot fully and confidently reconstruct is 'unreadable', never a
+  false 'modified').
 */
 async function classify(entry, expected) {
   const response = entry.response;
-  const mimeType = response?.content?.mimeType;
-  const raw = rawBytes(response?.content);
+  const content = response?.content;
+  const mimeType = content?.mimeType;
+  const raw = rawBytes(content);
   if (!raw) return { kind: 'unreadable' };
 
   const got = await sha256Hex(raw);
@@ -161,6 +175,7 @@ async function classify(entry, expected) {
     if (inflated) {
       const gotInflated = await sha256Hex(inflated);
       if (gotInflated === expected) return { kind: 'match' };
+      if (truncated(inflated, content)) return { kind: 'unreadable', reason: 'partial' };
       // Reversed the compression and it still differs: trust that as 'modified'
       // only if the result looks like the real file, else it is noise.
       return looksDecoded(inflated, mimeType)
@@ -170,10 +185,13 @@ async function classify(entry, expected) {
     // Magic matched but it would not inflate - fall through and judge the raw.
   }
 
-  // Not something we could decompress. If the transfer used an encoding we can't
-  // reverse here (e.g. brotli) and the bytes don't look like the real file, we
-  // cannot tell - fail safe to 'unreadable'. Otherwise the bytes are the decoded
-  // body and genuinely differ: 'modified'.
+  // The browser saved only part of the body (Firefox's 1 MB cap) - we hold fewer
+  // bytes than the HAR says the full body is, so we cannot verify it.
+  if (truncated(raw, content)) return { kind: 'unreadable', reason: 'partial' };
+
+  // A transfer-encoding we cannot reverse here (e.g. brotli/zstd) and the bytes
+  // don't look like the real file - fail safe. Otherwise the bytes are the
+  // decoded body and genuinely differ: 'modified'.
   const encoded = header(response, 'content-encoding');
   if (encoded && encoded !== 'identity' && !looksDecoded(raw, mimeType)) {
     return { kind: 'unreadable' };
@@ -181,12 +199,41 @@ async function classify(entry, expected) {
   return { kind: 'modified', got, expected, text: htmlText(raw, mimeType) };
 }
 
-/** The origin that served the HTML document - the app we are checking. */
+/** The origin that served the first HTML document (a fallback origin guess). */
 function originOfDocument(entries) {
   const doc = entries.find(e =>
     (e.response?.content?.mimeType || '').toLowerCase().includes('html'),
   );
   return doc ? new URL(doc.request.url).origin : null;
+}
+
+/*
+  Which origin is THE APP we are checking? A real session routinely spans several
+  origins - the app, its auth server (a login redirect), a CDN, a Cloudflare
+  challenge page. The app is the origin that actually serves THIS build: the one
+  whose responses map to real files in the manifest. Choosing "the first HTML
+  document" breaks the moment a login or challenge page loads first, so instead we
+  pick the origin serving the most build assets, and treat every other origin as
+  third-party. (The generic index.html mapping matches any HTML page, so it cannot
+  tell origins apart and is excluded from the tally.)
+*/
+function detectAppOrigin(entries, manifest) {
+  const score = new Map();
+  for (const e of entries) {
+    const url = e.request?.url;
+    const mimeType = e.response?.content?.mimeType;
+    if (!url || !isCode(mimeType)) continue;
+    let origin;
+    try { origin = new URL(url).origin; } catch { continue; }
+    const path = pathForUrl(url, mimeType);
+    if (path !== 'index.html' && manifest.files[path]) {
+      score.set(origin, (score.get(origin) || 0) + 1);
+    }
+  }
+  let best = null, bestN = 0;
+  for (const [origin, n] of score) if (n > bestN) { best = origin; bestN = n; }
+  // Fallback (e.g. only index.html was captured): the first HTML document.
+  return best || originOfDocument(entries);
 }
 
 /*
@@ -197,10 +244,13 @@ function originOfDocument(entries) {
     match       - byte-identical to the published build
     modified    - same path, different bytes (the file was really changed)
     unexpected  - code served by the app that is not in the build at all (injected)
-    unreadable  - we could not reconstruct the bytes (no body captured, or a
-                  transfer-encoding we cannot reverse here, e.g. brotli) - unknown,
-                  NOT proof of tampering
-    third-party - code from another origin (usually your own browser extensions)
+    unreadable  - we could not reconstruct the bytes (no body captured; the
+                  browser saved only part of it, reason 'partial' - Firefox caps
+                  saved bodies at ~1 MB; or a transfer-encoding we cannot reverse
+                  here, e.g. brotli) - unknown, NOT proof of tampering
+    third-party - code from a different origin than the app (its auth server, a
+                  CDN, a challenge page, or your browser extensions) - not part of
+                  this build, so ignored
 
   A response is only 'modified' when we are confident the decoded bytes differ;
   anything we cannot read fails SAFE to 'unreadable' so a browser quirk never
@@ -212,7 +262,7 @@ function originOfDocument(entries) {
 */
 export async function verifyHar(har, manifest) {
   const entries = har?.log?.entries ?? [];
-  const appOrigin = originOfDocument(entries);
+  const appOrigin = detectAppOrigin(entries, manifest);
 
   const results = [];
   for (const entry of entries) {
