@@ -1,0 +1,82 @@
+---
+const cardClass =
+  'rounded-[22px] border border-[rgba(43,39,36,0.07)] bg-white px-[30px] py-[32px]';
+const iconWrap =
+  'mb-[22px] flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-rust-soft';
+const heading = 'm-0 text-[20px] font-bold tracking-[-0.01em] text-ink';
+const body = 'mt-[12px] text-[15.5px] leading-[1.6] text-muted';
+---
+
+<section id="features" class="px-[4px] pt-[84px] pb-[8px]">
+  <div class="max-w-[560px]">
+    <h2 class="m-0 text-[34px] font-extrabold tracking-[-0.02em] text-ink">Features</h2>
+  </div>
+
+  <div class="mt-[40px] grid grid-cols-1 gap-[22px] md:grid-cols-3">
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg>
+      </div>
+      <h3 class={heading}>Envelope budgeting</h3>
+      <p class={body}>
+        Give every dollar a job - rent, kai, petrol, savings - so the money
+        that's left is genuinely spare.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+      </div>
+      <h3 class={heading}>Reports you'll actually read</h3>
+      <p class={body}>
+        Net worth, cash flow, and where it all went, drawn as clear charts.
+        A glance, not a spreadsheet.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"></path><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h5"></path><path d="M17.5 17.5 16 16.3V14"></path><circle cx="16" cy="16" r="6"></circle></svg>
+      </div>
+      <h3 class={heading}>Bills that don't ambush you</h3>
+      <p class={body}>
+        Set your rent, power and subscriptions to repeat, and keep the big ones
+        in view before they land.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="9" x="2" y="4" rx="2"></rect><path d="M2 15h9"></path><path d="M6 19h5"></path><path d="M8 15v4"></path><rect width="6" height="10" x="16" y="9" rx="2"></rect></svg>
+      </div>
+      <h3 class={heading}>On all your screens</h3>
+      <p class={body}>
+        Your budget stays in sync across phone, tablet and laptop, so it's there
+        at the checkout or on the couch.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+      </div>
+      <h3 class={heading}>Bring your history along</h3>
+      <p class={body}>
+        Moving from a spreadsheet, YNAB, or a bank CSV export? Import it - no
+        retyping from scratch.
+      </p>
+    </div>
+
+    <div class={cardClass}>
+      <div class={iconWrap}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c25a2e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg>
+      </div>
+      <h3 class={heading}>Tidies itself up</h3>
+      <p class={body}>
+        Set a rule once and matching transactions sort themselves. Less admin,
+        more feet-up.
+      </p>
+    </div>
+  </div>
+</section>

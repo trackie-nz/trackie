@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+import budgetImg from '../assets/actual-main-budget.webp';
+import txnImg from '../assets/actual-main-transaction.webp';
+import reportImg from '../assets/actual-report-dashboard-light.webp';
+
+/*
+  App screenshots from the upstream Actual Budget project (MIT licensed). This is
+  the same app Trackie hosts, so they show exactly what a user gets.
+*/
+const shots = [
+  {
+    img: budgetImg,
+    title: 'The budget',
+    body:
+      "This is where it all comes together. Every dollar you actually have gets a job - bills, groceries, savings - so you're planning with real money, not a guess at next month's pay. When life shifts, you just move money between categories and carry on.",
+  },
+  {
+    img: txnImg,
+    title: 'Your transactions',
+    body:
+      'Adding and sorting transactions is quick, whether you typed them in or imported a statement. Categorise as you go, split the weekly shop across a few categories, and fix a mistake in seconds. Changed your mind? Undo and redo mean there is nothing you can break by having a poke around.',
+  },
+  {
+    img: reportImg,
+    title: 'The reports',
+    body:
+      'See the shape of your money over time. Net worth, cash flow and spending by category come ready to go, and you can build your own dashboards from there. It is the long view - handy for spotting a trend or a slow leak without wading through a spreadsheet.',
+  },
+];
+---
+
+<section id="look-inside" class="px-[4px] pt-[84px] pb-[8px]">
+  <!--<div class="max-w-[560px]">
+    <h2 class="m-0 text-[34px] font-extrabold tracking-[-0.02em] text-ink">A look inside</h2>
+  </div>-->
+
+  <div class="mt-[46px] space-y-[52px]">
+    {
+      shots.map((shot, i) => (
+        <div class="grid grid-cols-1 items-center gap-[30px] md:grid-cols-[1fr_1.55fr] md:gap-[52px]">
+          <div class={i % 2 === 1 ? 'md:order-2' : ''}>
+            <h3 class="m-0 text-[23px] font-extrabold tracking-[-0.015em] text-ink">
+              {shot.title}
+            </h3>
+            <p class="mt-[12px] text-[16.5px] leading-[1.6] text-muted">{shot.body}</p>
+          </div>
+          <div class={`overflow-hidden rounded-[16px] border border-[rgba(43,39,36,0.1)] bg-white shadow-card ${i % 2 === 1 ? 'md:order-1' : ''}`}>
+            <Image
+              src={shot.img}
+              alt={`Trackie - ${shot.title.toLowerCase()}`}
+              loading="lazy"
+              class="block h-auto w-full"
+            />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>
