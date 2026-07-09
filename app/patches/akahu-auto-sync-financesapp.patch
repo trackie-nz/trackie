@@ -1,26 +1,58 @@
 diff --git a/packages/desktop-client/src/components/FinancesApp.tsx b/packages/desktop-client/src/components/FinancesApp.tsx
-index 19e0367..5226f51 100644
+index 19e0367..cd56173 100644
 --- a/packages/desktop-client/src/components/FinancesApp.tsx
 +++ b/packages/desktop-client/src/components/FinancesApp.tsx
-@@ -13,6 +13,7 @@ import { getLatestAppVersion, sync } from '#app/appSlice';
+@@ -9,17 +9,17 @@ import { theme } from '@actual-app/components/theme';
+ import { View } from '@actual-app/components/view';
+ import * as undo from '@actual-app/core/platform/client/undo';
+ 
+-import { getLatestAppVersion, sync } from '#app/appSlice';
++import { sync } from '#app/appSlice';
  import { ProtectedRoute } from '#auth/ProtectedRoute';
  import { Permissions } from '#auth/types';
  import { useAccounts } from '#hooks/useAccounts';
+-import { useGlobalPref } from '#hooks/useGlobalPref';
+-import { useLocalPref } from '#hooks/useLocalPref';
 +import { useAkahuAutoSync } from '#hooks/useAkahuAutoSync';
- import { useGlobalPref } from '#hooks/useGlobalPref';
- import { useLocalPref } from '#hooks/useLocalPref';
  import { useMetaThemeColor } from '#hooks/useMetaThemeColor';
-@@ -96,6 +97,9 @@ export function FinancesApp() {
+ import { useNavigate } from '#hooks/useNavigate';
+ import { ScrollProvider } from '#hooks/useScrollListener';
+ import { addNotification } from '#notifications/notificationsSlice';
+-import { useDispatch, useSelector } from '#redux';
++import { useDispatch } from '#redux';
++import { getIsOutdated, getLatestVersion } from '#util/versions';
+ 
+ import { UserAccessPage } from './admin/UserAccess/UserAccessPage';
+ import { UserDirectoryPage } from './admin/UserDirectory/UserDirectoryPage';
+@@ -96,13 +96,8 @@ export function FinancesApp() {
  
    const { data: accounts, isFetching: isAccountsFetching } = useAccounts();
  
+-  const versionInfo = useSelector(state => state.app.versionInfo);
+-  const [notifyWhenUpdateIsAvailable] = useGlobalPref(
+-    'notifyWhenUpdateIsAvailable',
+-  );
+-  const [lastUsedVersion, setLastUsedVersion] = useLocalPref(
+-    'flags.updateNotificationShownForVersion',
+-  );
 +  // TRACKIE: auto-sync linked bank accounts on budget open (20h per-user gate).
 +  useAkahuAutoSync();
-+
-   const versionInfo = useSelector(state => state.app.versionInfo);
-   const [notifyWhenUpdateIsAvailable] = useGlobalPref(
-     'notifyWhenUpdateIsAvailable',
-@@ -119,7 +123,7 @@ export function FinancesApp() {
+ 
+   const multiuserEnabled = useMultiuserEnabled();
+ 
+@@ -115,11 +110,19 @@ export function FinancesApp() {
+ 
+     async function run() {
+       await global.Actual.waitForUpdateReadyForDownload(); // This will only resolve when an update is ready
++      // TRACKIE: a new client bundle is deployed, but only prompt to reload when
++      // it is a newer Actual Budget version we have actually shipped.
++      // getLatestVersion() reads our own release tags and getIsOutdated()
++      // compares only the base version, so theme/overlay rebuilds of the same
++      // version stay silent.
++      if (!getIsOutdated(await getLatestVersion())) {
++        return;
++      }
+       dispatch(
          addNotification({
            notification: {
              type: 'message',
@@ -29,21 +61,60 @@ index 19e0367..5226f51 100644
              message: t(
                'Click the button below to reload and apply the update.',
              ),
-@@ -155,7 +159,7 @@ export function FinancesApp() {
-           addNotification({
-             notification: {
-               type: 'message',
+@@ -141,56 +144,6 @@ export function FinancesApp() {
+ 
+   useEffect(() => init(), []);
+ 
+-  useEffect(() => {
+-    void dispatch(getLatestAppVersion());
+-  }, [dispatch]);
+-
+-  useEffect(() => {
+-    if (notifyWhenUpdateIsAvailable && versionInfo) {
+-      if (
+-        versionInfo.isOutdated &&
+-        lastUsedVersion !== versionInfo.latestVersion
+-      ) {
+-        dispatch(
+-          addNotification({
+-            notification: {
+-              type: 'message',
 -              title: t('A new version of Actual is available!'),
-+              title: t('A new version of Trackie is available!'),
-               message:
-                 (import.meta.env.REACT_APP_IS_PIKAPODS ?? '').toLowerCase() ===
-                 'true'
-@@ -163,7 +167,7 @@ export function FinancesApp() {
-                       'A new version of Actual is available! Your Pikapods instance will be automatically updated in the next few days - no action needed.',
-                     )
-                   : t(
+-              message:
+-                (import.meta.env.REACT_APP_IS_PIKAPODS ?? '').toLowerCase() ===
+-                'true'
+-                  ? t(
+-                      'A new version of Actual is available! Your Pikapods instance will be automatically updated in the next few days - no action needed.',
+-                    )
+-                  : t(
 -                      'Version {{latestVersion}} of Actual was recently released.',
-+                      'Version {{latestVersion}} of Trackie was recently released.',
-                       { latestVersion: versionInfo.latestVersion },
-                     ),
-               sticky: true,
+-                      { latestVersion: versionInfo.latestVersion },
+-                    ),
+-              sticky: true,
+-              id: 'update-notification',
+-              button: {
+-                title: t('Open changelog'),
+-                action: () => {
+-                  window.open('https://actualbudget.org/docs/releases');
+-                },
+-              },
+-              onClose: () => {
+-                setLastUsedVersion(versionInfo.latestVersion);
+-              },
+-            },
+-          }),
+-        );
+-      }
+-    }
+-  }, [
+-    dispatch,
+-    lastUsedVersion,
+-    notifyWhenUpdateIsAvailable,
+-    setLastUsedVersion,
+-    t,
+-    versionInfo,
+-  ]);
+-
+   const scrollableRef = useRef<HTMLDivElement>(null);
+ 
+   return (
