@@ -1,5 +1,5 @@
 diff --git a/packages/desktop-client/src/components/HelpMenu.tsx b/packages/desktop-client/src/components/HelpMenu.tsx
-index 51b626e..f4761a6 100644
+index f3fec9b..0e5ea9f 100644
 --- a/packages/desktop-client/src/components/HelpMenu.tsx
 +++ b/packages/desktop-client/src/components/HelpMenu.tsx
 @@ -1,13 +1,15 @@
@@ -19,19 +19,19 @@ index 51b626e..f4761a6 100644
  import { useToggle } from 'usehooks-ts';
  
  import { useFeatureFlag } from '#hooks/useFeatureFlag';
-@@ -42,7 +44,8 @@ type HelpMenuItem =
-   | 'docs'
+@@ -45,7 +47,8 @@ type HelpMenuItem =
    | 'discord'
    | 'keyboard-shortcuts'
+   | 'start-tour'
 -  | 'goal-templates';
 +  | 'goal-templates'
 +  | 'support-email';
  
  type HelpButtonProps = {
    onPress?: () => void;
-@@ -80,6 +83,24 @@ export const HelpMenu = () => {
-   const dispatch = useDispatch();
+@@ -85,6 +88,24 @@ export const HelpMenu = () => {
    const page = useLocation().pathname;
+   const { startTour } = useTour();
  
 +  /* Deployment config (TRACKIE_SUPPORT_EMAIL in the server .env), fetched at
 +  runtime so the address is never in the public source or the built bundle.
@@ -54,7 +54,7 @@ index 51b626e..f4761a6 100644
    const handleItemSelect = (item: HelpMenuItem) => {
      switch (item) {
        case 'docs':
-@@ -94,6 +115,9 @@ export const HelpMenu = () => {
+@@ -102,6 +123,9 @@ export const HelpMenu = () => {
        case 'goal-templates':
          dispatch(pushModal({ modal: { name: 'goal-templates' } }));
          break;
@@ -64,7 +64,7 @@ index 51b626e..f4761a6 100644
        default:
          throw new Error(`Unrecognized menu option: ${String(item)}`);
      }
-@@ -130,6 +154,16 @@ export const HelpMenu = () => {
+@@ -139,6 +163,16 @@ export const HelpMenu = () => {
              ...(showGoalTemplates && page === '/budget'
                ? [{ name: 'goal-templates', text: t('Goal templates') }]
                : []),
